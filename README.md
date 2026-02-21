@@ -12,8 +12,22 @@ From the repository root:
 make
 ```
 
-This builds `paper/paper.tex` into `paper/paper.pdf`.
+This builds:
+- `paper/paper.tex` into `paper/paper.pdf`
+- `experiment/reproduction_protocol.tex` into `experiment/reproduction_protocol.pdf`
+
+You can build targets individually:
+
+```bash
+make paper
+make experiment
+```
+
 The `Makefile` uses `latexmk` when available, and falls back to running `pdflatex` twice.
+
+## Experiments
+
+The `experiment/` folder contains the reproducibility protocol and will host scripts and data needed to reproduce the numerical experiments in the paper.
 
 ## Clean build artifacts
 

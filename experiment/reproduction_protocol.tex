@@ -1,0 +1,156 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tabularx}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{Independent Reproduction Protocol for Numerical Results}
+\author{Talgat Daniyarov}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Purpose and Decision Logic}
+This protocol specifies a falsifiable reproduction plan for the paper's main claims. The intent is not to ``make the plots look good,'' but to determine whether the predicted effects appear under clean, controlled simulations and disappear under deliberate violations.
+
+\paragraph{Notation.}
+Let $m_N$ denote the effective sample size defined in the paper, and $f=n/N$ the treated (or sampled) fraction.
+
+\paragraph{Claims and decision rules.}
+Table~\ref{tab:decision-rules} lists the core claims and the expected outcomes that support or reject each one.
+
+\begin{table}[ht]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{Y Y Y}
+\toprule
+Claim & Support if (expected outcomes) & Reject if (failure modes) \\
+\midrule
+\textbf{C1. Gaussian shift equivalence / forced pivot (main theorem).} & For regular equal-tailed Bayes intervals measurable w.r.t. $(\hat\tau,\hat V)$, endpoint differences from the Gaussian pivot shrink at rate $O(m_N^{-1/2})$ uniformly across several regular priors. Gaussian-shift proxy diagnostics (QQ or distance metrics) show discrepancies decaying with $m_N$. & Endpoint differences do not decay at $m_N^{-1/2}$, or are sensitive to mild prior changes. Gaussian-shift proxy shows persistent non-Gaussian features in the asymptotic range. \\
+\textbf{C2. Higher-order refinement when parity holds.} & In symmetry/parity settings, calibrated methods show $O(m_N^{-1})$ coverage error with stabilized $m_N e(m_N)$ plots and slopes near $-1$. When parity fails, errors align with $O(m_N^{-1/2})$ and $m_N^{1/2}e(m_N)$ stabilizes instead. & No regime separation: calibrated methods fail to improve under parity, or show $O(m_N^{-1})$ even when theory predicts only $O(m_N^{-1/2})$. \\
+\textbf{C3. Sampling-fraction skew.} & Estimated skew component is near zero at $f=1/2$, flips sign across $f=1/2$, and grows with $|f-1/2|$. Coverage improvements track this pattern. & Skew component does not vanish at $f=1/2$, or no sign flip occurs across $f=1/2$. \\
+\textbf{C4. Lattice correction.} & Jittered calibration substantially reduces lattice periodicity (e.g., CDF jump size or coverage oscillation amplitude) and improves coverage stability relative to un-jittered Cornish--Fisher. & Periodicity persists after jittering, or jittering changes coverage negligibly while periodic artifacts remain. \\
+\textbf{C5. Cluster leverage regimes.} & Under vanishing maximal leverage, calibrated methods show the predicted refinement; under leverage violation, refinement degrades and rate-scaled plots fail to stabilize. & Regime B behaves like the violation case, or violation cases still show strong refinement. \\
+\bottomrule
+\end{tabularx}
+\caption{Decision rules for supporting or rejecting the main claims.}
+\label{tab:decision-rules}
+\end{table}
+
+\section{Reproducibility Standards and Outputs}
+\subsection{Hermetic run description}
+The reproducer must log, in a single run record:
+\begin{itemize}[leftmargin=*]
+\item operating system and CPU model,
+\item RNG type (name only),
+\item exact pseudo-random seed(s) (outer population and inner assignment seeds),
+\item execution date/time,
+\item number of parallel workers.
+\end{itemize}
+All randomization must be seed-controlled and logged.
+
+\subsection{Mandatory deliverables}
+\begin{enumerate}[label=(\Alph*),leftmargin=*,itemsep=2pt]
+\item \textbf{Master table} (CSV-like) with one row per configuration including: design type, outcome type, $N$, $m_N$, $f=n/N$, cluster summaries (if relevant), Monte Carlo counts $(B,R,S)$, coverage and MCSE for each method, average interval length, and diagnostics (pivot skew/kurtosis, lattice periodicity metric, maximal leverage $\lambda_N$).
+\item \textbf{PDF report} with: coverage vs. $m_N$ plots, log--log slope checks, sampling-fraction panels, lattice periodicity before/after jitter, clustered leverage plots, violation stress tests, and a run-log appendix.
+\end{enumerate}
+
+\section{Experimental Designs and DGPs}
+\subsection{Designs}
+\begin{enumerate}[label=(D\arabic*),leftmargin=*,itemsep=2pt]
+\item CRA with treated fraction grid $f\in\{0.20,0.35,0.50,0.65,0.80\}$ (include $f=1/2$ exactly).
+\item Stratified design with at least two strata and heterogeneous stratum variances; include at least two $f$ values on opposite sides of $1/2$.
+\item Clustered designs: Regime A (bounded cluster size) and Regime B (growing clusters with vanishing maximal leverage).
+\item Violation case: at least one clustered configuration with $\lambda_N$ bounded away from $0$.
+\end{enumerate}
+
+Report the effective sample size $m_N$ as defined in the paper for each design and include its value in the master table.
+
+\subsection{Outcome regimes}
+At minimum:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Skewed continuous outcomes:} e.g., lognormal or $\chi^2$-type finite populations.
+\item \textbf{Binary outcomes:} Bernoulli finite populations (lattice setting).
+\end{itemize}
+For each configuration, draw a finite population once per outer draw, then randomize assignments repeatedly in the inner loop.
+
+\subsection{FPC sanity module}
+Generate a finite population $y_{1:N}$, draw an SRSWOR sample of size $n$, and verify
+\[\frac{\widehat{\mathrm{Var}}(\mu_N\mid y_S)}{(1-f)s_S^2/n}\approx 1\]
+across several $(N,n)$ pairs spanning $f\in[0.2,0.8]$.
+
+\section{Procedures to Compare}
+\subsection{Baseline}
+Gaussian pivot interval: $\hat\tau \pm z_{1-\alpha/2}\,\widehat{\mathrm{SE}}$.
+
+\subsection{Higher-order calibration (continuous)}
+Cornish--Fisher calibrated interval using estimated cumulants/Edgeworth terms.
+
+\subsection{Higher-order calibration (lattice)}
+Cornish--Fisher with lattice jittering: add independent uniform jitter with half-width equal to half the lattice span in standardized units. Use an independent jitter seed, logged.
+
+\subsection{Forced-pivot diagnostic (C1)}
+Construct equal-tailed Bayesian intervals based on the pivot likelihood with several regular priors on the standardized parameter (e.g., normal, Student-$t$ with moderate degrees of freedom, Laplace). Compare endpoint differences to the Gaussian pivot and verify $O(m_N^{-1/2})$ convergence uniformly across priors.
+
+\subsection{Gaussian-shift proxy diagnostic (C1)}
+Compare the empirical distribution of $(\hat\tau,\hat V)$ to the Gaussian-shift benchmark (e.g., QQ plots and a Wasserstein or Kolmogorov distance). Verify decay of the discrepancy with $m_N$.
+
+\section{Monte Carlo Design and MCSE Reporting}
+Use a two-level simulation:
+\begin{itemize}[leftmargin=*]
+\item Outer loop: $B$ independent finite populations.
+\item Inner loop: $R$ assignments per population.
+\end{itemize}
+Report MCSE for coverage using both within-population and between-population components; include the combined MCSE in the master table.
+
+\section{Rate Verification and Diagnostics}
+\subsection{Rate plots}
+For each design/outcome/method, define coverage error $e(m_N)=|\hat p(m_N)-(1-\alpha)|$ and plot:
+\begin{itemize}[leftmargin=*]
+\item $m_N\,e(m_N)$ vs. $m_N$ (stabilization indicates $O(m_N^{-1})$),
+\item $m_N^{1/2}e(m_N)$ vs. $m_N$ (stabilization indicates $O(m_N^{-1/2})$).
+\end{itemize}
+Estimate log--log slopes on the largest 3--4 $m_N$ points and report slope estimates with MCSE-based uncertainty.
+
+\subsection{Sampling-fraction skew}
+For CRA and one clustered configuration, run the $f$-grid and report:
+\begin{itemize}[leftmargin=*]
+\item estimated pivot skewness (third standardized cumulant),
+\item fitted coefficient on $(1-2f)$ in the empirical skew decomposition,
+\item coverage improvements as a function of $f$.
+\end{itemize}
+Pass criteria: the design-induced component is near zero at $f=1/2$, the sign flips across $f=1/2$, and magnitude grows with $|f-1/2|$.
+
+\subsection{Lattice periodicity}
+Report a periodicity diagnostic (e.g., maximum adjacent-step jump in the pivot CDF or coverage oscillation amplitude) before and after jittering. Pass criterion: the jittered method substantially reduces periodicity.
+
+\subsection{Cluster leverage}
+Report $\lambda_N=\max_g n_g/\sum_h n_h$ across $N$ and confirm the assumed decay in Regime B. In the violation case, rate-scaled plots should fail to stabilize as predicted.
+
+\section{Integrity Checks}
+\begin{itemize}[leftmargin=*]
+\item Confirm that potential outcomes are generated once per finite population (outer loop) and assignments are randomized independently (inner loop).
+\item Apply lattice jittering to a continuous-outcome configuration and verify negligible effect on coverage and length.
+\item Report pivot skewness and kurtosis to ensure corrections move in the predicted direction.
+\end{itemize}
+
+\section{Minimum Configuration Grid}
+\begin{itemize}[leftmargin=*]
+\item CRA: continuous + binary, $f\in\{0.20,0.35,0.50,0.65,0.80\}$, at least 5 $N$ values.
+\item Stratified: continuous + binary, two $f$ values straddling $1/2$, at least 3 $N$ values.
+\item Clustered Regime A and B: continuous + binary, at least 3 $N$ values, include leverage diagnostics.
+\item Violation case: at least one $N$ (preferably two) with $\lambda_N$ bounded away from 0.
+\item FPC sanity module: at least 4 $(N,n)$ pairs spanning $f\in[0.2,0.8]$.
+\end{itemize}
+
+\section{Reporting Requirements}
+The final PDF report must include method definitions, coverage/length tables with MCSEs, rate-scaled plots, sampling-fraction skew panels, lattice periodicity diagnostics, cluster leverage plots (including violation case), and a run-log appendix. All deviations from this protocol must be explicitly documented and justified.
+
+\end{document}

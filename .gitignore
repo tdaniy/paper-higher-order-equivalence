@@ -21,3 +21,4 @@
 
 # Generated PDF output for the main paper build
 paper/paper.pdf
+experiment/*.pdf
