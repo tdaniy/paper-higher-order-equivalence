@@ -11,7 +11,9 @@ import csv
 import math
 import os
 import time
-from typing import List
+from typing import List, Tuple
+
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import sys
 
@@ -52,6 +54,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--slope-csv", type=str, default="experiment/kill_shot_rate_grid_slopes.csv")
     parser.add_argument("--plot-only", action="store_true", help="skip simulation and replot from CSV")
     parser.add_argument("--input-csv", type=str, help="CSV to read when --plot-only is set")
+    parser.add_argument("--plot-raw-p05", type=str, help="output path for raw error p=0.5 plot")
+    parser.add_argument("--jobs", type=int, default=0, help="number of parallel workers (0=auto)")
     return parser.parse_args()
 
 
@@ -127,6 +131,40 @@ def plot_scaled(rows: List[dict], path: str, scale: str, logy: bool, ylim: List[
     plt.savefig(path, dpi=200)
 
 
+def plot_raw_p05(rows: List[dict], path: str) -> None:
+    try:
+        import os
+        os.environ.setdefault("MPLCONFIGDIR", "experiment/.mpl_cache")
+        import matplotlib.pyplot as plt
+    except Exception:
+        return
+
+    p_target = 0.5
+    methods = sorted({r["method"] for r in rows})
+    plt.figure(figsize=(6, 3.5))
+    for method in methods:
+        subset = [r for r in rows if r["method"] == method and abs(float(r["p"]) - p_target) < 1e-9]
+        subset = sorted(subset, key=lambda r: int(r["N"]))
+        if not subset:
+            continue
+        xs = [int(r["N"]) for r in subset]
+        ys = [float(r["coverage_error"]) for r in subset]
+        errs = [float(r.get("mcse", 0.0)) for r in subset]
+        plt.plot(xs, ys, marker="o", label=method)
+        if any(e > 0 for e in errs):
+            lower = [max(v - e, 0.0) for v, e in zip(ys, errs)]
+            upper = [v + e for v, e in zip(ys, errs)]
+            plt.fill_between(xs, lower, upper, alpha=0.15)
+
+    plt.xlabel("N")
+    plt.ylabel("|coverage - (1-α)|")
+    plt.title("Raw coverage error vs N (p=0.5)")
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=8, ncol=2)
+    plt.tight_layout()
+    plt.savefig(path, dpi=200)
+
+
 def _weighted_log_slope(xs: List[float], ys: List[float], sigmas: List[float]) -> Tuple[float, float]:
     vals = []
     for x, y, s in zip(xs, ys, sigmas):
@@ -178,6 +216,23 @@ def estimate_slopes(rows: List[dict], scale: str, k: int) -> List[dict]:
     return out
 
 
+def _simulate_one_n(args: Tuple[int, int, int, int, List[float], float, int, float, float, float]) -> Tuple[int, List[dict]]:
+    n, b, r_skew, r_cov, p_grid, alpha, seed, delta, mu, sigma = args
+    sim_rows = ks.run_simulation(
+        n=n,
+        b=b,
+        r_skew=r_skew,
+        r_cov=r_cov,
+        p_grid=p_grid,
+        alpha=alpha,
+        seed=seed,
+        delta=delta,
+        mu=mu,
+        sigma=sigma,
+    )
+    return n, sim_rows
+
+
 def main() -> None:
     args = parse_args()
     start = time.time()
@@ -194,33 +249,75 @@ def main() -> None:
                 r["err_linear"] = n * err
     else:
         total = len(args.n_grid)
-        for idx, n in enumerate(args.n_grid, 1):
-            sim_rows = ks.run_simulation(
-                n=n,
-                b=args.b,
-                r_skew=args.r_skew,
-                r_cov=args.r_cov,
-                p_grid=args.p_grid,
-                alpha=args.alpha,
-                seed=args.seed,
-                delta=args.delta,
-                mu=args.lognormal_mu,
-                sigma=args.lognormal_sigma,
-            )
-            for r in sim_rows:
-                err = float(r["coverage_error"])
-                r["N"] = n
-                r["err_sqrt"] = math.sqrt(n) * err
-                r["err_linear"] = n * err
-                rows.append(r)
-            elapsed = time.time() - start
-            avg = elapsed / idx
-            eta = avg * (total - idx)
-            print(f"[{idx}/{total}] N={n} done. Elapsed={elapsed:.1f}s ETA={eta:.1f}s")
+        jobs = args.jobs
+        if jobs <= 0:
+            try:
+                jobs = min(total, os.cpu_count() or 1)
+            except Exception:
+                jobs = 1
+
+        if jobs <= 1 or total == 1:
+            for idx, n in enumerate(args.n_grid, 1):
+                sim_rows = ks.run_simulation(
+                    n=n,
+                    b=args.b,
+                    r_skew=args.r_skew,
+                    r_cov=args.r_cov,
+                    p_grid=args.p_grid,
+                    alpha=args.alpha,
+                    seed=args.seed + n,
+                    delta=args.delta,
+                    mu=args.lognormal_mu,
+                    sigma=args.lognormal_sigma,
+                )
+                for r in sim_rows:
+                    err = float(r["coverage_error"])
+                    r["N"] = n
+                    r["err_sqrt"] = math.sqrt(n) * err
+                    r["err_linear"] = n * err
+                    rows.append(r)
+                elapsed = time.time() - start
+                avg = elapsed / idx
+                eta = avg * (total - idx)
+                print(f"[{idx}/{total}] N={n} done. Elapsed={elapsed:.1f}s ETA={eta:.1f}s")
+        else:
+            tasks = []
+            with ProcessPoolExecutor(max_workers=jobs) as ex:
+                for n in args.n_grid:
+                    task_args = (
+                        n,
+                        args.b,
+                        args.r_skew,
+                        args.r_cov,
+                        list(args.p_grid),
+                        args.alpha,
+                        args.seed + n,
+                        args.delta,
+                        args.lognormal_mu,
+                        args.lognormal_sigma,
+                    )
+                    tasks.append(ex.submit(_simulate_one_n, task_args))
+
+                completed = 0
+                for fut in as_completed(tasks):
+                    n, sim_rows = fut.result()
+                    for r in sim_rows:
+                        err = float(r["coverage_error"])
+                        r["N"] = n
+                        r["err_sqrt"] = math.sqrt(n) * err
+                        r["err_linear"] = n * err
+                        rows.append(r)
+                    completed += 1
+                    elapsed = time.time() - start
+                    avg = elapsed / completed
+                    eta = avg * (total - completed)
+                    print(f"[{completed}/{total}] N={n} done. Elapsed={elapsed:.1f}s ETA={eta:.1f}s")
 
         write_csv(args.csv, rows)
     plot_scaled(rows, args.plot_sqrt, scale="sqrt", logy=args.logy, ylim=args.ylim)
     plot_scaled(rows, args.plot_linear, scale="linear", logy=args.logy, ylim=args.ylim)
+    if args.plot_raw_p05:
+        plot_raw_p05(rows, args.plot_raw_p05)
     slope_rows = estimate_slopes(rows, scale="sqrt", k=args.slope_k) + estimate_slopes(
         rows, scale="linear", k=args.slope_k
     )

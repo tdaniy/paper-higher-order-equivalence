@@ -7,6 +7,7 @@
 \RequirePackage{graphicx}
 \RequirePackage{booktabs}
 \RequirePackage{enumitem}
+\RequirePackage{array}
 
 \startlocaldefs
 \newtheorem{theorem}{Theorem}
@@ -92,7 +93,10 @@ The remainder of the paper proceeds as follows. Section~2 introduces the finite-
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{p{0.24\linewidth}p{0.46\linewidth}p{0.26\linewidth}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.25\linewidth}%
+                >{\raggedright\arraybackslash}p{0.45\linewidth}%
+                >{\raggedright\arraybackslash}p{0.24\linewidth}}
 \toprule
 Result & Purpose & Main assumptions \\
 \midrule
@@ -741,10 +745,12 @@ We provide a focused stress test to illustrate the sampling-fraction obstruction
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\linewidth]{../experiment/kill_shot_rate_grid_tight_sqrt_log.png}
-\vspace{0.6em}
-\includegraphics[width=0.95\linewidth]{../experiment/kill_shot_rate_grid_tight_linear_log.png}
-\caption{Stress-test coverage errors for skewed lognormal outcomes under CRA at $p\in\{0.5,0.9\}$. Top: $\sqrt{N}$-scaled error; bottom: $N$-scaled error. Shaded bands are Monte Carlo standard errors. Near census ($p=0.9$), the Gaussian and Cornish--Fisher errors align with $O(N^{-1/2})$ scaling, while the calibrated interval reduces error to the simulation noise floor.}
+\includegraphics[width=0.90\linewidth]{../experiment/kill_shot_rate_grid_tight_sqrt_log.png}
+\vspace{0.4em}
+\includegraphics[width=0.90\linewidth]{../experiment/kill_shot_rate_grid_tight_linear_log.png}
+\vspace{0.4em}
+\includegraphics[width=0.62\linewidth]{../experiment/kill_shot_rate_grid_tight_raw_p05_crop.png}
+\caption{Stress-test coverage errors for skewed lognormal outcomes under CRA at $p\in\{0.5,0.9\}$. Top: $\sqrt{N}$-scaled error; middle: $N$-scaled error (both on a log scale to emphasize regime separation). Bottom: raw error at $p=0.5$, showing that differences among methods are near the Monte Carlo noise floor. Shaded bands are Monte Carlo standard errors. Near census ($p=0.9$), the Gaussian and Cornish--Fisher errors align with $O(N^{-1/2})$ scaling, while the calibrated interval reduces error to the simulation noise floor.}
 \label{fig:stress_tests}
 \end{figure}
 
@@ -1031,11 +1037,18 @@ Hence the joint law of $(\hat\tau,\hat V)$ under local alternatives converges to
 
 \emph{Step 2 (Le Cam equivalence).}
 Construct Markov kernels $K_N$ mapping full data to $Z_N=(\hat\tau,\hat V)$ (trivial) and $L_N$ mapping $Z_N$ to a synthetic full-data statistic
-whose likelihood ratio matches that of the Gaussian shift up to $o(1)$ in total variation (standard construction using conditional Gaussian couplings).
-Concretely, given $Z_N$, we generate a Gaussian Hájek-projection array with matching first two moments and embed it into a synthetic
-finite population by adding the projection to a fixed baseline sequence, then draw a CRA assignment. The induced law for the
-studentized statistic matches the Gaussian shift likelihood ratio up to the uniform Edgeworth remainder, which controls the
-total-variation error.
+whose likelihood ratio matches that of the Gaussian shift up to $o(1)$ in total variation. Concretely, given $Z_N=(\hat\tau,\hat V)$, let
+$\{\xi_i\}_{i=1}^N$ be i.i.d.\ $\mathcal N(0,1)$ and set
+\[
+\tilde U_i=\frac{\sqrt{\hat V}}{\sqrt{N}}\Big(\xi_i-\bar\xi\Big),\qquad \bar\xi=\frac1N\sum_{j=1}^N\xi_j,
+\]
+so that $\sum_i \tilde U_i=0$ and $\frac{1}{N}\sum_i \tilde U_i^2\approx \hat V$.
+Fix a baseline sequence $\tilde Y_i^{(0)}$ with mean $\hat\tau$ and bounded fourth moments (e.g., a centered two-point sequence scaled to match $\hat V$),
+and define the synthetic potential outcomes $\tilde Y_i(1)=\tilde Y_i^{(0)}+\tilde U_i$ and $\tilde Y_i(0)=\tilde Y_i^{(0)}$.
+Given these synthetic outcomes, draw a CRA assignment $W$ to generate synthetic observed data. By construction, the induced studentized
+statistic $\tilde S_N$ has the same first two moments as $S_N$ and satisfies the same uniform Edgeworth expansion as in
+Theorem~\ref{thm:edgeworth}; thus $\|\mathcal L(\tilde S_N)-\mathcal N(0,1)\|_{\mathrm{TV}}=o(1)$ and the likelihood ratios match up to the
+uniform remainder. This yields a reverse kernel $L_N$ with total-variation error $o(1)$.
 The deficiency distance bounds then imply $\Delta(\mathcal E_N^\mathrm{full},\mathcal G_N)\to 0$ and $\Delta(\mathcal E_N^\mathrm{red},\mathcal G_N)\to 0$.
 Therefore $\Delta(\mathcal E_N^\mathrm{full},\mathcal E_N^\mathrm{red})\to 0$.
 
