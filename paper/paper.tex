@@ -74,6 +74,7 @@ Our main contribution is an experiment-level approximation (Theorem~\ref{thm:suf
 \item Higher-order refinements that isolate sampling-fraction skew and parity-driven regimes, with extensions to lattice outcomes and clustered designs.
 \end{itemize}
 The logic is: experiment equivalence $\Rightarrow$ sufficiency for bounded-loss decision problems under reduced information $\Rightarrow$ forced CLT-order pivot geometry; the remainder refines or extends this spine.
+This can be read as an impossibility statement: within the reduced-information regular class, any design-valid equal-tailed interval that departs from the Gaussian pivot must forfeit CLT-order validity.
 
 Our scope is limited to regular, design-valid procedures measurable with respect to $(\hat\tau,\hat V)$ and to randomized designs
 without interference or adaptive assignment. Nonregular priors, procedures that depend on richer information than
@@ -149,7 +150,10 @@ There exists $\delta>0$ such that, for $z\in\{0,1\}$,
 uniformly in $N$ for some constant $C<\infty$.
 Moreover, the finite-population variances that appear in the Hájek projection limits are uniformly nondegenerate: there exist constants $0<c<C<\infty$ such that the asymptotic variance $V$ of $m_N^{1/2}(\hat\tau-\tau)$ satisfies $c\le V\le C$, and the treated fraction satisfies $p\in(0,1)$ in the sense that $N_1/N\to p$.
 \end{assumption}
-The higher-order expansions and total-variation/deficiency bounds use the $4+\delta$ moment condition above; CLT-order results rely only on the CLT and variance-regularity conditions stated here.
+Higher-order expansions and the total-variation/deficiency bounds throughout the paper use the $4+\delta$ moment condition above; weakening the moment assumptions for CLT-order equivalence is plausible but would require different tools and is left open.
+\begin{remark}[Moment boundary and rate sharpness]\label{rem:pareto_boundary}
+A Pareto-type finite-population sequence with tail index $\alpha\in(2,3)$ has finite variance but infinite third moment. In this setting a CLT for the studentized mean can still hold, yet the Kolmogorov distance to the Gaussian limit decays at rate $N^{1-\alpha/2}$ rather than $N^{-1/2}$. Consequently, a uniform $m_N^{-1/2}$ deficiency bound cannot hold without the $4+\delta$ moment assumption. This does \emph{not} preclude $\Delta(\mathcal E_N,\mathcal G_N)\to 0$; it only limits the attainable rate. See the complementary note for a concrete construction.
+\end{remark}
 
 
 Define the studentized statistic
@@ -221,6 +225,11 @@ If $p_N\to 1$ (or $0$) and $c_\Delta(p_N)\to\infty$, then the sampling-fraction 
 $\mN^{-1/2}c_\Delta(p_N)$ and can dominate. In particular, when $c_\Delta(p_N)\asymp (1-p_N)^{-1/2}$, the transition occurs
 at $1-p_N\asymp \mN^{-1/2}$.
 \end{proposition}
+
+\subsection*{Near-census phase transition}
+Standard i.i.d. asymptotics effectively take the sampling fraction to be $0$, masking the regime change highlighted by
+Proposition~\ref{prop:rate_transition}. Near-census sampling ($1-p_N\asymp \mN^{-1/2}$) marks a genuine phase transition:
+the design-induced skew becomes leading-order and drives the attainable calibration rate.
 
 \section{Uniform Studentized Edgeworth Expansion}
 This section establishes a uniform, studentized Edgeworth expansion for the design-based distribution of the canonical estimator under completely randomized assignment.
@@ -384,6 +393,7 @@ We now apply the operator viewpoint to clustered and lattice extensions.
 \section{Extensions: clustered designs with growing clusters (Regime B)}\label{sec:clusterB}
 Consider $G_N$ clusters with sizes $n_{gN}$, $\sum_g n_{gN}=N$, and cluster-level assignment $W_g$.
 Regime~B allows growing clusters, in contrast to the bounded-cluster (Regime~A) setting used earlier.
+This extension serves as a stress test in high-leverage settings where bounded-cluster theory is silent.
 \begin{assumption}[Regime B leverage]\label{ass:levB}\label{ass:regimeB}
 $G_N\to\infty$, $\max_g n_{gN}/N\to0$, and a cluster-level Lindeberg condition holds for the Hájek projection.
 \end{assumption}
@@ -409,6 +419,8 @@ We next treat lattice outcomes, where periodicity requires a separate correction
 When outcomes are lattice-valued (e.g., Bernoulli), the randomization distribution of $\hat\tau$ is itself lattice.
 Studentized Edgeworth expansions then acquire a \emph{periodic term} and naïve Cornish--Fisher inversions no longer
 deliver $O(\mN^{-1})$ coverage errors without an explicit continuity adjustment.
+This is a hostile discrete setting; the continuity correction demonstrates that the experiment-theoretic conclusions
+persist even under lattice effects.
 
 \subsection{Periodic component of the lattice Edgeworth expansion}
 Let $\Delta_N>0$ denote the lattice span of $\SN$ (after appropriate centering and scaling).
@@ -420,7 +432,8 @@ uniformly in $x\in\R$,
 =
 \Phi(x)
 + \mN^{-1/2} P_1(x)\phi(x)
-+ \mN^{-1}\Big\{P_2(x)\phi(x) + \Pi_N(x)\phi(x)\Big\}
++ \mN^{-1/2}\Pi_N(x)\phi(x)
++ \mN^{-1} P_2(x)\phi(x)
 + o(\mN^{-1}).
 \end{equation}
 
@@ -455,11 +468,14 @@ Then, under the same finite-population symmetry condition as in Theorem~\ref{thm
 \]
 and without the symmetry condition the coverage error is $O(\mN^{-1/2})$.
 \end{theorem}
-Without jittering, the periodic term yields a Kolmogorov gap of order $\mN^{-1/2}$, which implies a deficiency lower bound for threshold losses; the jittering correction removes this obstruction.
+The lattice expansion contains a periodic term of order $\mN^{-1/2}$; jittering removes this leading periodic component and recovers the continuous-case expansion to first order.
 
 \begin{remark}[Lattice span for Bernoulli outcomes]\label{rem:lattice_span}
 Under CRA with Bernoulli potential outcomes, the lattice span satisfies $\Delta_N\asymp d_N\asymp \mN^{-1/2}$ (see
 Appendix~\ref{app:lattice}), so the scaling assumption in Theorem~\ref{thm:lattice} holds.
+\end{remark}
+\begin{remark}[Nonvanishing periodic term for Bernoulli outcomes]\label{rem:lattice_nonvanish}
+For Bernoulli outcomes with success fraction $q\neq 1/2$, the lattice periodic term in~\eqref{eq:lattice-edgeworth} is generically nonvanishing. To avoid degenerate cancellations, we assume a nonvanishing subsequence on which $\sup_x|\Pi_N(x)|$ is bounded away from zero.
 \end{remark}
 We now turn to experiment equivalence and asymptotic sufficiency.
 
@@ -478,7 +494,8 @@ to $\sigma(\hat\tau,\hat V)$. Appendix~\ref{app:suff} provides explicit kernels 
 Asymptotic equivalence provides Markov kernels that transfer decision rules (and their risks) between the randomization
 experiment and the Gaussian shift experiment, so it is strictly stronger than a CLT for a fixed statistic. The
 sufficiency statement therefore rules out first-order improvements from procedures that use information beyond
-$(\hat\tau,\hat V)$.
+$(\hat\tau,\hat V)$. The reduction kernel is the natural map to $(\hat\tau,\hat V)$, while the reverse kernel synthesizes
+a Gaussian Hájek projection with matched first two moments; see Appendix~\ref{app:suff}.
 Appendix~\ref{app:suff} gives a proof-complete sufficiency/equivalence statement with explicit deficiency bounds
 as Theorem~\ref{thm:asymp-suff-proof}.
 
@@ -531,6 +548,7 @@ $C_{1-\alpha}=[\tauN\pm z_{1-\alpha/2}\sqrt{\VN}]+o_p(\mN^{-1/2})$.
 \end{corollary}
 Theorem~\ref{thm:clt_characterization} gives a direct information-restriction characterization, while
 Corollary~\ref{cor:char} shows the same conclusion follows from experiment equivalence and risk transfer.
+Equivalently, within the regular reduced-information class, the Gaussian pivot is the unique admissible CLT-order limit.
 
 
 \section{Full-likelihood Objective Bayes and alignment under randomization}\label{sec:full_likelihood_forcing}
@@ -717,6 +735,19 @@ the without-replacement Hájek projection at the required order, the $P_1$ and p
 conditions in Theorem~\ref{thm:second_order_validity} apply verbatim, avoiding a new
 long proof.
 
+\subsection{Numerical stress tests}
+
+We provide a focused stress test to illustrate the sampling-fraction obstruction and the effect of calibration. Figure~\ref{fig:stress_tests} reports coverage errors for skewed lognormal outcomes under CRA at treated fractions $p\in\{0.5,0.9\}$, comparing the Gaussian pivot, Cornish--Fisher correction, and the calibrated interval. The $\sqrt{N}$-scaled error is roughly flat for the Gaussian and Cornish--Fisher methods at $p=0.9$, consistent with $O(N^{-1/2})$ behavior, while the calibrated interval reduces the error to the Monte Carlo noise floor. At $p=0.5$ the errors are small for all methods, consistent with the predicted cancellation of the sampling-fraction skew.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{../experiment/kill_shot_rate_grid_tight_sqrt_log.png}
+\vspace{0.6em}
+\includegraphics[width=0.95\linewidth]{../experiment/kill_shot_rate_grid_tight_linear_log.png}
+\caption{Stress-test coverage errors for skewed lognormal outcomes under CRA at $p\in\{0.5,0.9\}$. Top: $\sqrt{N}$-scaled error; bottom: $N$-scaled error. Shaded bands are Monte Carlo standard errors. Near census ($p=0.9$), the Gaussian and Cornish--Fisher errors align with $O(N^{-1/2})$ scaling, while the calibrated interval reduces error to the simulation noise floor.}
+\label{fig:stress_tests}
+\end{figure}
+
 
 \section{Discussion}
 
@@ -727,9 +758,7 @@ These objective-Bayes conclusions are conditional on the symmetry and coupling c
 Assumptions~\ref{ass:exchangeable_prior}--\ref{ass:neutral_coupling}; alternative symmetry choices can lead to different
 posteriors and variance decompositions.
 
-When numerical illustrations are provided, they are framed as stress tests of the regime distinctions rather than as primary
-evidence: parity-holds versus parity-fails configurations, moderate sampling fractions versus near-census sampling,
-lattice outcomes with and without jittering, and clustered designs below versus above the leverage threshold.
+Figure~\ref{fig:stress_tests} illustrates the regime distinctions as stress tests rather than as primary evidence: moderate sampling fractions versus near-census sampling, and calibrated versus uncalibrated intervals under skewed outcomes. The near-census panels contrast a standard pivot interval against the calibrated interval, highlighting the $O(\mN^{-1/2})$ gap predicted by the theory.
 
 From this perspective, objective priors are not being used to ``inject'' information about outcomes; rather, they enforce the only symmetry available before treatment assignment---permutation invariance of units. Because an ignorable likelihood cannot resolve the missing potential outcomes, posterior uncertainty must be propagated through the exchangeable predictive law for the unobserved units, which reproduces the without-replacement (finite-population) correction. Thus the familiar randomization variance is not an ad hoc frequentist artifact but the unavoidable Bayesian expression of missing mass under symmetry.
 

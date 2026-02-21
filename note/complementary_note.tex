@@ -1,0 +1,61 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Complementary Note: Heavy-Tail Boundary for Deficiency Rates}
+\author{Talgat Daniyarov}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Context}
+The main paper imposes a $4+\delta$ moment condition to obtain uniform higher-order expansions and
+control total-variation/deficiency distances. A natural question is whether these bounds can be
+maintained under weaker moments. The construction below shows that in heavy-tailed finite populations
+(with finite variance but infinite third or fourth moment), Kolmogorov distance can decay strictly
+slower than $m_N^{-1/2}$, so no uniform $m_N^{-1/2}$ deficiency rate is possible in general. This does
+\emph{not} preclude $\Delta\to 0$; it only constrains the rate.
+
+\section{Pareto-type finite-population sequence}
+Fix a tail index $\alpha\in(2,3)$ (finite variance, infinite third moment). For each $N$, define a
+finite population $\{X_{iN}\}_{i=1}^N$ by Pareto quantiles, for example
+\[
+X_{iN} = (i/N)^{-1/\alpha},\qquad i=1,\dots,N.
+\]
+Set potential outcomes $Y_i(1)=X_{iN}$ and $Y_i(0)=0$, so $\tau_N=\bar X_N$ and the treated mean is the
+parameter of interest. Under CRA with $n_1=pN$ and $n_0=(1-p)N$, the usual difference-in-means estimator
+reduces to a (without-replacement) sample mean of the heavy-tailed finite population.
+
+The finite-population Lindeberg condition holds because
+$\max_i X_{iN}^2 / \sum_i X_{iN}^2 \to 0$ for $\alpha>2$,
+so a CLT for the (studentized) mean still holds. However, the third absolute moment diverges, and
+classical results for heavy-tailed sums imply that the Kolmogorov distance between the standardized
+mean and the standard normal cannot decay at rate $N^{-1/2}$.
+In fact, for i.i.d. Pareto($\alpha$) sums, the optimal rate is $N^{1-\alpha/2}$; the same rate appears
+for without-replacement means via the Hájek projection.
+
+\section{Implication for deficiency rates}
+Let $S_N$ denote the studentized pivot in the main paper, and let $\Phi$ denote the standard normal CDF.
+When $\alpha\in(2,3)$, one has
+\[
+\sup_x \bigl|\Pr(S_N\le x)-\Phi(x)\bigr| \gtrsim N^{1-\alpha/2},
+\]
+so no uniform $m_N^{-1/2}$ Kolmogorov bound can hold. For threshold losses
+$L(a,s)=\mathbf 1\{a\neq \mathbf 1(s\le x)\}$, the risk gap equals the CDF gap, which lower-bounds the
+Le Cam deficiency distance. Hence, without a $4+\delta$ moment condition one cannot expect a uniform
+$m_N^{-1/2}$ deficiency rate in general.
+
+\section{Remarks}
+\begin{itemize}
+\item This construction does \emph{not} contradict $\Delta(\mathcal E_N,\mathcal G_N)\to 0$ when a CLT
+holds; it shows only that the rate may be slower than $m_N^{-1/2}$.
+\item If $\alpha\le 2$, the variance is infinite and the CLT fails, so even convergence to a Gaussian
+benchmark can break down.
+\item The note is intended as a boundary illustration; it can be developed into a formal counterexample
+if needed.
+\end{itemize}
+
+\end{document}

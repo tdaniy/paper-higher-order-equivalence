@@ -8,19 +8,25 @@ EXP_DIR := experiment
 EXP_TEX := $(EXP_DIR)/reproduction_protocol.tex
 EXP_PDF := $(EXP_DIR)/reproduction_protocol.pdf
 
+NOTE_DIR := note
+NOTE_TEX := $(NOTE_DIR)/complementary_note.tex
+NOTE_PDF := $(NOTE_DIR)/complementary_note.pdf
+
 LATEXMK ?= latexmk
 LATEXMK_FLAGS := -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
 LATEX ?= pdflatex
 LATEX_FLAGS := -interaction=nonstopmode -halt-on-error -file-line-error
 
-.PHONY: all paper experiment clean
+.PHONY: all paper experiment note clean
 
-all: paper experiment
+all: paper experiment note
 
 paper: $(PDF_OUT)
 
 experiment: $(EXP_PDF)
+
+note: $(NOTE_PDF)
 
 $(PDF_OUT): $(TEX_SRC)
 	@if command -v $(LATEXMK) >/dev/null 2>&1; then \
@@ -38,10 +44,19 @@ $(EXP_PDF): $(EXP_TEX)
 		$(LATEX) $(LATEX_FLAGS) -output-directory=$(EXP_DIR) $(EXP_TEX); \
 	fi
 
+$(NOTE_PDF): $(NOTE_TEX)
+	@if command -v $(LATEXMK) >/dev/null 2>&1; then \
+		$(LATEXMK) $(LATEXMK_FLAGS) -output-directory=$(NOTE_DIR) $(NOTE_TEX); \
+	else \
+		$(LATEX) $(LATEX_FLAGS) -output-directory=$(NOTE_DIR) $(NOTE_TEX); \
+		$(LATEX) $(LATEX_FLAGS) -output-directory=$(NOTE_DIR) $(NOTE_TEX); \
+	fi
+
 clean:
 	@if command -v $(LATEXMK) >/dev/null 2>&1; then \
 		$(LATEXMK) -C -output-directory=$(TEX_DIR) $(TEX_SRC); \
 		$(LATEXMK) -C -output-directory=$(EXP_DIR) $(EXP_TEX); \
+		$(LATEXMK) -C -output-directory=$(NOTE_DIR) $(NOTE_TEX); \
 	fi
 	rm -f $(TEX_DIR)/*.aux \
 	      $(TEX_DIR)/*.bbl \
@@ -65,3 +80,14 @@ clean:
 	      $(EXP_DIR)/*.run.xml \
 	      $(EXP_DIR)/*.synctex.gz \
 	      $(EXP_DIR)/*.toc
+	rm -f $(NOTE_DIR)/*.aux \
+	      $(NOTE_DIR)/*.bbl \
+	      $(NOTE_DIR)/*.bcf \
+	      $(NOTE_DIR)/*.blg \
+	      $(NOTE_DIR)/*.fdb_latexmk \
+	      $(NOTE_DIR)/*.fls \
+	      $(NOTE_DIR)/*.log \
+	      $(NOTE_DIR)/*.out \
+	      $(NOTE_DIR)/*.run.xml \
+	      $(NOTE_DIR)/*.synctex.gz \
+	      $(NOTE_DIR)/*.toc
