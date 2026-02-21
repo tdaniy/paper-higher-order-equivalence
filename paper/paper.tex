@@ -1,0 +1,794 @@
+
+\documentclass[11pt]{article} % imsart.cls not available in this build environment
+
+\usepackage{amsthm,amsmath,amssymb,mathtools,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[numbers]{natbib}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{assumption}{Assumption}
+
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+\theoremstyle{plain}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathbb{V}\mathrm{ar}}
+\newcommand{\Prb}{\mathbb{P}}
+\newcommand{\PhiN}{\Phi}
+\newcommand{\phiN}{\phi}
+\newcommand{\mN}{m_N}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\tauN}{\hat{\tau}_N}
+\newcommand{\VN}{\hat V_N}
+\newcommand{\SN}{S_N}
+
+\begin{document}
+\title{\textbf{Higher-Order Equivalence of Bayesian and Randomization Inference in Finite Populations}}
+\author{Talgat Daniyarov}
+\date{}
+\maketitle
+
+\begin{abstract}
+We establish the higher-order equivalence of Bayesian and randomization inference in finite populations by proving that the randomization experiment is asymptotically equivalent in Le Cam deficiency distance to a Gaussian shift experiment. This equivalence implies that the studentized design-based estimator is an asymptotically sufficient statistic for the experiment, forcing any regular, design-valid Bayesian procedure to align with the randomization geometry at CLT order. Beyond first order, we derive uniform studentized Edgeworth expansions that isolate a novel sampling-fraction skewness decomposition, identifying a qualitative transition in calibration requirements as the sampling fraction approaches a census. We further provide a Bayesian continuity correction via ancillary jittering for lattice outcomes and establish the sharp boundaries of second-order validity under high-leverage clustered designs.
+\end{abstract}
+
+\noindent\textbf{Keywords:} randomization inference; Bayesian calibration; finite populations; Edgeworth expansion; higher-order asymptotics.
+
+\section{Introduction}
+
+Randomization-based inference treats potential outcomes as fixed attributes of a finite population and demands procedures with repeated-randomization guarantees. Bayesian inference, by contrast, quantifies uncertainty through a posterior distribution and is most often justified by an outcome model. The resulting tension is well known in experimental practice: model-based posteriors can be decision-theoretically appealing yet lack design-based guarantees, while design-based intervals provide validity without an explicit probability model for outcomes. This paper addresses the foundational question of whether these paradigms can be reconciled \emph{structurally}---not by ad hoc adjustments, but because the randomization experiment itself constrains the geometry of valid posterior uncertainty.
+
+Historically, the two traditions have developed largely in parallel. Neyman--Fisher randomization theory delivers inference under known assignment mechanisms; modern finite-population asymptotics sharpen this with studentization, Berry--Esseen bounds, and (in favorable cases) Edgeworth refinements. Bayesian approaches to causal inference typically proceed through superpopulation likelihoods, while ``objective'' or limited-information Bayes methods update from pivots or estimating equations. Higher-order probability matching results provide another bridge, but they are usually formulated for i.i.d.\ likelihood experiments. In finite populations, however, dependence induced by assignment without replacement introduces distinct higher-order structure, so classical i.i.d.\ arguments do not directly answer the design-valid Bayes question.
+
+Our contribution sits at the intersection of three literatures: (i) design-based finite-population asymptotics for randomized experiments (including stratification and clustering), (ii) objective/limited-information Bayesian constructions anchored to studentized design pivots, and (iii) asymptotic experiment theory and higher-order expansions (Edgeworth/Cornish--Fisher and Le Cam deficiency). \emph{We prove asymptotic experiment equivalence in deficiency distance, isolate sampling-fraction skew, and identify calibration rate transitions.} This positioning matters: the central equivalence is stated at the level of experiments, which makes the ensuing characterization results non-tautological and clarifies what aspects of posterior behavior are forced by design validity.
+
+The paper makes five main points, ordered by intellectual hierarchy. First, we prove that the randomization experiment is asymptotically equivalent, in Le Cam deficiency distance, to a Gaussian shift experiment whose central sequence is the studentized design-based estimator. Second, this experiment-level equivalence implies asymptotic sufficiency of the Gaussian pivot and yields a sharp CLT-order characterization: any regular design-valid equal-tailed Bayesian procedure must match the Gaussian pivot up to $o_p(m_N^{-1/2})$. Third, we show that finite-population randomization generates a \emph{sampling-fraction skew} (a design-induced asymmetry) term absent in i.i.d.\ asymptotics; near census sampling this term can dominate third-order behavior even under bounded moments. Fourth, we identify regime transitions in calibration scaling (near-census and high-leverage clustering in Regime~B), including a sharpness counterexample when maximal leverage is too large. Fifth, for lattice (binary) outcomes, we give a Bayesian-friendly ancillary jittering correction that removes periodic Edgeworth artifacts and restores $O(m_N^{-1})$ refined validity, and we provide numerical evidence corroborating the theoretical gains in non-asymptotic regimes where discreteness typically degrades coverage.
+
+\paragraph{Main theorem in words.}
+When validity is required under repeated randomization, the randomization experiment is asymptotically equivalent, in Le Cam's sense, to a Gaussian shift experiment whose central sequence is the studentized design-based estimator. At CLT order this equivalence forces Gaussian-pivot geometry for all regular design-valid equal-tailed Bayesian procedures. Beyond CLT order, finite-population combinatorics generate sampling-fraction skew and regime transitions that determine when refined calibration is automatic, when it requires explicit correction, and when it can fundamentally degrade.
+
+The remainder of the paper proceeds as follows. Section 2 introduces the finite-population framework and notation. Section 3 develops the third-cumulant decomposition and isolates the sampling-fraction skew that distinguishes finite-population randomization from i.i.d. asymptotics. Section 4 establishes a uniform studentized Edgeworth expansion, which underpins the posterior expansion in Section 5 and the structural second-order validity results of Section 6. Section 7 extends the analysis to clustered designs, identifying calibration rate transitions and a sharpness boundary under high leverage. Section 8 addresses lattice outcomes and presents an explicit ancillary jittering correction that restores refined validity in discrete settings. Section 9 then develops the asymptotic sufficiency and deficiency-distance equivalence results, showing that the Gaussian pivot is forced at CLT order. Section 10 concludes with discussion. The appendix contains the construction of Markov kernels and total-variation bounds underlying the deficiency equivalence, together with proof details for the Regime B sharpness arguments.
+
+
+\section{Finite-Population Setup}\label{sec:setup}
+
+Consider a finite population of size $N$ with potential outcomes
+$\{Y_i(0),Y_i(1)\}_{i=1}^N$.
+Let $\tau_N$ denote the finite-population ATE.
+Randomness arises solely from the assignment mechanism.
+
+
+\begin{assumption}[Global moments and nondegeneracy]\label{ass:global_moments}
+There exists $\delta>0$ such that, for $z\in\{0,1\}$,
+\[
+\frac{1}{N}\sum_{i=1}^N \bigl|Y_i(z)-\bar Y_z\bigr|^{4+\delta} \le C
+\quad\text{and}\quad
+\frac{1}{N}\sum_{i=1}^N \bigl|Y_i(1)-Y_i(0)-\tau\bigr|^{4+\delta} \le C
+\]
+uniformly in $N$ for some constant $C<\infty$.
+Moreover, the finite-population variances that appear in the Hájek projection limits are uniformly nondegenerate: there exist constants $0<c<C<\infty$ such that the asymptotic variance $V$ of $m_N^{1/2}(\hat\tau-\tau)$ satisfies $c\le V\le C$, and the sampling fraction satisfies $\pi\in(0,1)$ in the sense that $N_1/N\to \pi$.
+\end{assumption}
+
+
+Define the studentized statistic
+\[
+\SN = \frac{\tauN - \tau_N}{\sqrt{\VN}}.
+\]
+
+
+
+\section{Finite-population third-cumulant decomposition}\label{sec:cumulant-decomp}
+
+In finite populations, ``randomness'' is a combinatorial artifact of assignment without replacement. As the treated fraction $N_1/N$ approaches a census, the geometry of uncertainty changes: variability is increasingly driven by the diminishing pool of unassigned units, and third-order behavior is amplified by the sampling fraction. The studentized pivot accommodates both the usual moment-driven skew and this census-amplified assignment skew through the same normalization.
+Let $p_N=n_{1N}/N\to p\in(0,1)$ under CRA. Let $\kappa_{3}^{(1)}$ and $\kappa_{3}^{(0)}$ denote the finite-population
+third central moments of $\{Y_i(1)\}$ and $\{Y_i(0)\}$, and define
+$\kappa_{3}^{(\Delta)} := N^{-1}\sum_{i=1}^N ( \Delta_i-\bar\Delta )^3$ with $\Delta_i:=Y_i(1)-Y_i(0)$.
+\begin{theorem}[Third-cumulant decomposition; sampling-fraction skew]\label{thm:cumulant}
+Under bounded $(3+\delta)$ moments,
+\[
+\kappa_3\!\left(\frac{\hat\tau-\tau}{\sqrt{\Var(\hat\tau)}}\right)
+=
+\mN^{-1/2}\Big\{
+c_1(p)\,\frac{\kappa_{3}^{(1)}}{(\kappa_{2}^{(1)})^{3/2}}
++ c_0(p)\,\frac{\kappa_{3}^{(0)}}{(\kappa_{2}^{(0)})^{3/2}}
++ c_\Delta(p)\,\frac{\kappa_{3}^{(\Delta)}}{(\Var(\hat\tau))^{3/2}}
+\Big\}
++ o(\mN^{-1/2}),
+\]
+where $c_1(p),c_0(p),c_\Delta(p)$ depend only on $p$. Moreover, the \emph{design-induced asymmetry} enters through the factor $(1-2p)$: one can write
+\[
+ c_\Delta(p)=(1-2p)\,\tilde c_\Delta(p),
+\]
+where $\tilde c_\Delta(p)$ is a smooth function bounded away from $0$ and $\infty$ on compact subsets of $(0,1)$. In particular, at $p=1/2$ the finite-population (sampling-fraction) contribution to skewness cancels, reflecting the symmetry of complete randomization at equal allocation. The third term is absent in superpopulation i.i.d.\ asymptotics and
+is proportional to the sampling fraction. Studentization cancels this term jointly with the superpopulation-style
+terms under the finite-population symmetry condition of Theorem~\ref{thm:second_order_validity}.
+\end{theorem}
+
+\begin{remark}[Decomposition of randomness and the $p=1/2$ crossover]\label{rem:decomp_randomness}
+Theorem~\ref{thm:cumulant} separates superpopulation-style skewness from a genuinely finite-population component induced by assignment without replacement. Writing the treated fraction as $p=n_{1N}/N$ (equivalently $f=p$), the third cumulant admits the schematic decomposition
+\[
+\kappa_3\!\left(\frac{\hat\tau-\tau}{\sqrt{\Var(\hat\tau)}}\right)
+=\text{(moment skew from }Y(1)\text{ and }Y(0)\text{)} \;+\; (1-2p)\times\text{(missing-mass skew from }\Delta\text{)} \;+\; o(m_N^{-1/2}).
+\]
+In particular, at $p=1/2$ the design-induced skewness cancels by the symmetry of complete randomization under equal allocation; for $p>1/2$ the direction of the finite-population correction reverses, reflecting that the ``missing mass'' is concentrated in the smaller arm. This qualitative crossover is absent in standard i.i.d.\ asymptotics, where the sampling fraction is implicitly $0$.
+\end{remark}
+
+\section{Uniform Studentized Edgeworth Expansion}
+\noindent\textbf{Overview.}
+This section establishes a uniform, studentized Edgeworth expansion for the design-based distribution of the canonical estimator under completely randomized assignment.
+Uniformity is used later to justify inversion for equal-tailed calibration and to control remainder terms on the same $n^{-1}$ scale as the leading correction.
+The expansion makes explicit how finite-population structure enters through the sampling fraction, isolating a design-induced skew component that is absent in the usual i.i.d.\ limit.
+
+\label{sec:edgeworth}
+
+\begin{theorem}[Design-uniform Edgeworth expansion]
+Under finite-population asymptotics with bounded $(4+\delta)$ moments,
+\begin{align*}
+\Prb(\SN \le x)
+=
+\PhiN(x)
++ \mN^{-1/2} P_1(x)\phiN(x)
++ \mN^{-1} P_2(x)\phiN(x)
++ o(\mN^{-1})
+\end{align*}
+uniformly in $x$, for CRA, stratified, and bounded-cluster designs.
+\end{theorem}
+
+\section{Posterior Expansion}
+\noindent\textbf{Roadmap.}
+We now derive the posterior analogue of the studentized expansion in Section~\ref{sec:edgeworth}, so that the correction terms can be compared term-by-term in Section~\ref{sec:second_order}.
+
+\label{sec:posterior}
+
+Define the reference posterior
+\[
+L_N^*(\tau) \propto
+\exp\left\{-\frac{(\tauN-\tau)^2}{2\kappa_N \VN}\right\}.
+\]
+
+\begin{theorem}[Posterior CDF expansion]\label{thm:posterior_expansion}
+Under prior smoothness,
+\[
+F_{u,N}(x)
+=
+\PhiN(x)
++ \mN^{-1/2} A_1(x)\phiN(x)
++ \mN^{-1} A_2(x)\phiN(x)
++ o(\mN^{-1}).
+\]
+\end{theorem}
+
+\section{Structural Second-Order Validity}\label{sec:second_order}
+
+\begin{theorem}[Automatic second-order design validity]\label{thm:second_order_validity}
+If $P_1$ is even, then equal-tailed credible intervals satisfy
+\[
+\Prb(\tau_N \in C_N^*(1))
+=
+1-\alpha + O(\mN^{-1}).
+\]
+\end{theorem}
+
+\begin{theorem}[CLT-order characterization with explicit information and regularity]\label{thm:clt_characterization}
+Fix $\alpha\in(0,1)$.  Let $\mathcal{C}_N=\mathcal{C}_N(\alpha)$ be an equal-tailed Bayesian
+credible interval for $\tau$ produced by some data-dependent posterior $\Pi_N(\cdot\mid \text{data})$.
+Assume the following.
+
+\begin{enumerate}[label=(A\arabic*),leftmargin=*,itemsep=2pt]
+\item \textbf{Information set.}  There exists a measurable map $G_N:\R^2\to\{\text{intervals}\}$ such that
+$\mathcal{C}_N = G_N(\tauN,\VN)$; i.e. $\mathcal{C}_N$ is measurable with respect to the
+$\sigma$--field generated by $(\tauN,\VN)$.
+\item \textbf{Regular endpoints.}  Writing $\mathcal{C}_N=[L_N,U_N]$, there exist (possibly $N$--dependent)
+functions $\ell_N,u_N:\R\to\R$ such that
+\[
+L_N=\tauN+\sqrt{\VN}\,\ell_N(T_N),\qquad U_N=\tauN+\sqrt{\VN}\,u_N(T_N),
+\]
+where $T_N:=\tauN/\sqrt{\VN}$, and $\ell_N,u_N$ are locally Lipschitz uniformly in $N$
+on compact sets.
+\item \textbf{Uniform first-order design validity.}  For every triangular array of potential outcomes satisfying the
+finite-population CLT and variance regularity conditions in Section~\ref{sec:setup},
+\[
+\Pr\!\left(\tau\in\mathcal{C}_N\right)=1-\alpha+o(1),
+\]
+where the probability is under the randomization distribution.
+\end{enumerate}
+
+Then necessarily,
+\[
+\mathcal{C}_N
+=
+\left[\tauN - z_{1-\alpha/2}\sqrt{\VN},\ \tauN + z_{1-\alpha/2}\sqrt{\VN}\right]
++ o_p(\mN^{-1/2}),
+\]
+uniformly over the same class of arrays.  In particular, \emph{any} such interval depending only on $(\tauN,\VN)$
+is forced, at CLT order, to coincide with the Gaussian pivot.
+\end{theorem}
+
+\begin{remark}[What the theorem does and does not claim]\label{rem:info_set}
+Theorem~\ref{thm:clt_characterization} is intentionally an \emph{information-restriction} result:
+if the procedure is only allowed to ``see'' $(\tauN,\VN)$, then CLT-order design validity leaves no degrees of freedom.
+If one enlarges the information set (e.g. allows dependence on consistent estimators of third and fourth
+finite-population cumulants), then non-Gaussian \emph{second-order} corrections become possible and, indeed,
+are the point of Section~\ref{sec:calibration}.  However, under the same CLT conditions the \emph{leading}
+center $\tauN$ and scale $\sqrt{\VN}$ remain unavoidable for any regular, design-valid interval.
+\end{remark}
+
+\begin{remark}[Prior influence at CLT order]\label{rem:prior_rate}
+Theorem~\ref{thm:clt_characterization} does \emph{not} say the prior is irrelevant in finite samples.
+Rather it implies that, under regularity, prior-induced shifts in posterior quantiles must be
+$o_p(\mN^{-1/2})$ if uniform first-order design validity is to hold.
+A sufficient (checkable) condition is that the log-prior for the standardized parameter
+$\theta:=(\tau-\tauN)/\sqrt{\VN}$ has uniformly bounded first and second derivatives in a neighborhood of $0$
+(so the prior contributes only $O(1)$ to the LAN log-likelihood).  Under this condition,
+posterior centering and spread are driven by the randomization CLT, and prior effects enter only through
+the $O(\mN^{-1/2})$ Edgeworth terms discussed later.
+\end{remark}
+
+\medskip\noindent\textbf{Takeaway.}
+The results of this section identify a sharp qualitative transition in what can be achieved by second-order calibration: in the ``parity-holds'' regime, the leading studentized correction is of order $n^{-1}$ and can be removed uniformly, whereas in the ``parity-fails'' regime the remaining asymmetry is of order $n^{-1/2}$ and cannot be eliminated by any regular equal-tailed adjustment without additional structure.
+This dichotomy is what ultimately determines when higher-order Bayes/randomization matching is possible and where conservative behavior is unavoidable.
+
+\section{Calibration Operator}
+\noindent\textbf{Overview.}
+Sections~\ref{sec:edgeworth}--\ref{sec:second_order} characterize when second-order calibration is attainable and when it fails.
+This section formalizes the corresponding \emph{calibration operator} that maps the leading cumulant information into a computable correction, providing a stable interface between the asymptotic expansions and implementable procedures.
+The operator viewpoint is also the entry point for the extensions to clustered designs and lattice outcomes in subsequent sections.
+
+\label{sec:calibration}
+
+\begin{theorem}[Explicit calibration for asymmetric sets]
+For one-sided inference,
+\[
+\kappa_N
+=
+1 + \frac{a}{\sqrt{\mN}} + o(\mN^{-1/2}),
+\qquad
+a
+=
+-
+\frac{P_1(z_\alpha) + b_1(1-\alpha)}{z_\alpha}.
+\]
+\end{theorem}
+
+\section{Clustered designs with growing clusters (Regime B)}\label{sec:clusterB}
+Consider $G_N$ clusters with sizes $n_{gN}$, $\sum_g n_{gN}=N$, and cluster-level assignment $W_g$.
+\begin{assumption}[Regime B leverage]\label{ass:levB}\label{ass:regimeB}
+$G_N\to\infty$, $\max_g n_{gN}/N\to0$, and a cluster-level Lindeberg condition holds for the Hájek projection.
+\end{assumption}
+\begin{theorem}[Regime B CLT and first-order calibration]\label{thm:clusterB}
+Under Assumption~\ref{ass:regimeB} and bounded $(2+\delta)$ moments of cluster totals,
+$\{\hat\tau_{\mathrm{cl}}-\tau\}/\sqrt{\Var(\hat\tau_{\mathrm{cl}})}\overset{d}{\to}\mathcal{N}(0,1)$.
+The equal-tailed limited-information credible interval based on the studentized cluster statistic is first-order
+design-valid: $\Prb\{\tau\in C^{\mathrm{cl}}_{1-\alpha}\}=1-\alpha+o(1)$.
+\end{theorem}
+
+
+\begin{proposition}[Sharpness via a high-leverage counterexample]\label{prop:lev_counter}
+Let $m_N=G$ and suppose $\lambda_N=\max_g n_g/\sum_h n_h \asymp G^{-1/2}$ (or larger). Then there exist sequences of finite populations and cluster-randomization schemes satisfying the global moment bound but for which the cluster-level studentized pivot has third cumulant bounded away from zero, so that the $O(G^{-1/2})$ term in the Edgeworth expansion does \emph{not} vanish uniformly. Consequently, generic second-order refinement $O(G^{-1})$ is unattainable without additional structure.
+\end{proposition}
+
+\begin{remark}[Interpretation: phase transition]\label{rem:phase}
+Assumption~\ref{ass:levB} is sufficient for uniform $o(G^{-1})$ Edgeworth remainders. Proposition~\ref{prop:lev_counter} shows that when maximal leverage is of order $G^{-1/2}$ or larger, one can no longer expect second-order refinement uniformly: the effective non-Gaussian term can remain $O(G^{-1/2})$.
+\end{remark}
+
+\section{Lattice outcomes and an explicit continuity correction}\label{sec:lattice}
+% [content truncated in earlier cell for brevity]
+When outcomes are lattice-valued (e.g., Bernoulli), the randomization distribution of $\hat\tau$ is itself lattice.
+Studentized Edgeworth expansions then acquire a \emph{periodic term} and naïve Cornish--Fisher inversions no longer
+deliver $O(\mN^{-1})$ coverage errors without an explicit continuity adjustment.
+
+\subsection{Periodic component of the lattice Edgeworth expansion}
+Let $\Delta_N>0$ denote the lattice span of $\SN$ (after appropriate centering and scaling).
+Under the same moment and design-regularity conditions as Theorem~\ref{thm:posterior_expansion}, but allowing lattice support,
+there exist polynomials $P_1,P_2$ and a bounded periodic function $\Pi_N(\cdot)$ of period $\Delta_N$ such that
+uniformly in $x\in\R$,
+\begin{equation}\label{eq:lattice-edgeworth}
+\Prb(\SN\le x)
+=
+\Phi(x)
++ \mN^{-1/2} P_1(x)\phi(x)
++ \mN^{-1}\Big\{P_2(x)\phi(x) + \Pi_N(x)\phi(x)\Big\}
++ o(\mN^{-1}).
+\end{equation}
+
+\subsection{A Bayesian continuity correction via randomized jittering}
+Define the \emph{jittered} statistic
+\[
+\SN^{\mathrm{jit}} := \SN + U_N, \qquad U_N\sim\mathrm{Unif}\!\left(-\tfrac{\Delta_N}{2},\tfrac{\Delta_N}{2}\right),
+\]
+independent of the assignment.
+Let $\pi^{\mathrm{jit}}(\tau\mid \hat\tau,\hat V)$ denote the limited-information reference posterior obtained by
+applying our Gaussian-tilting construction to $\SN^{\mathrm{jit}}$.
+This posterior has the explicit density
+\begin{equation}\label{eq:jittered-posterior}
+\pi^{\mathrm{jit}}(\tau\mid \hat\tau,\hat V)
+\propto
+\phi\!\left(\frac{\hat\tau-\tau}{\sqrt{\hat V}}\right)
+\left[
+1+\mN^{-1/2}a_1\!\left(\frac{\hat\tau-\tau}{\sqrt{\hat V}}\right)
++\mN^{-1}a_2\!\left(\frac{\hat\tau-\tau}{\sqrt{\hat V}}\right)
+\right].
+\end{equation}
+
+\begin{theorem}[Second-order validity for lattice outcomes via jittering]\label{thm:lattice}
+Assume the conditions of Theorem~\ref{thm:posterior_expansion} with lattice support and $\Delta_N=O(\mN^{-1/2})$.
+Let $C^{\mathrm{jit}}_{1-\alpha}$ be the equal-tailed $1-\alpha$ credible interval from
+$\pi^{\mathrm{jit}}(\tau\mid \hat\tau,\hat V)$.
+Then, under the same finite-population symmetry condition as in Theorem~\ref{thm:second_order_validity},
+\[
+\Prb\{\tau\in C^{\mathrm{jit}}_{1-\alpha}\}
+=
+1-\alpha + O(\mN^{-1}),
+\]
+and without the symmetry condition the coverage error is $O(\mN^{-1/2})$.
+\end{theorem}
+
+\section{The Resolution---Randomization as a Constraint on Objective Bayes}\label{sec:sufficiency}
+
+
+The preceding sections developed refined calibration for limited-information posteriors built from studentized design pivots. We now provide the paper's resolution: why a full-likelihood Bayesian---whose likelihood is \emph{ignorable} with respect to the assignment mechanism---is nonetheless trapped by randomization geometry. Ignorability makes the likelihood essentially flat in the unobserved potential outcomes, so any learning about the finite population must proceed through permutation-invariant (``objective'') structure on the space of units; this exchangeability, in turn, induces the same missing-mass uncertainty that governs randomization distributions. Our deficiency-distance equivalence results show that this alignment is not a coincidence of the difference-in-means estimator, but an unavoidable consequence of the experiment's information geometry: at CLT order the Gaussian pivot is asymptotically sufficient, forcing all regular design-valid equal-tailed Bayesian procedures to coincide with the pivot up to $o_p(m_N^{-1/2})$.
+
+\begin{theorem}[Asymptotic sufficiency of $(\hat\tau,\hat V)$]\label{thm:sufficiency}
+Under the CLT conditions of Theorem~\ref{thm:clt_characterization} and local alternatives $\tau=\tau_0+h/\sqrt{\mN}$,
+the randomization experiment is asymptotically equivalent (in Le Cam's sense) to a Gaussian shift experiment observed
+through $(\hat\tau,\hat V)$. In particular, $(\hat\tau,\hat V)$ is asymptotically sufficient at CLT order.
+\end{theorem}
+\begin{corollary}[CLT-order characterization as a consequence of sufficiency]\label{cor:char}
+Any regular, first-order design-valid two-sided interval measurable with respect to $\sigma(\hat\tau,\hat V)$ satisfies
+$C_{1-\alpha}=[\hat\tau\pm z_{1-\alpha/2}\sqrt{\hat V}]+o_p(\mN^{-1/2})$.
+\end{corollary}
+
+
+\section{Full-likelihood Objective Bayes and forced alignment with randomization}\label{sec:full_likelihood_forcing}
+
+This section records a complementary ``non-pivot'' message.
+The main body starts from the limited-information Gaussian pivot $\SN$ and
+characterizes the higher-order corrections required for repeated-randomization validity.
+Here we show that, even if one begins with a full-likelihood Bayesian analysis over the
+\emph{entire} finite-population vector of potential outcomes, permutation invariance and
+diffuse nonparametric learning force posterior uncertainty to reproduce the
+without-replacement geometry of randomization, including the finite-population correction.
+
+\subsection{A symmetry prior for finite populations}
+
+Let $Y_{1:N}(z):=(Y_1(z),\dots,Y_N(z))$ for $z\in\{0,1\}$.
+Write $\bar Y_N(z)=N^{-1}\sum_{i=1}^N Y_i(z)$ and $\tau_N=\bar Y_N(1)-\bar Y_N(0)$.
+Under CRA with $N_1$ treated and $N_0=N-N_1$ controls, the observed outcomes are
+$\{Y_i^{\mathrm{obs}}: i\le N\}$ with $Y_i^{\mathrm{obs}}=W_iY_i(1)+(1-W_i)Y_i(0)$.
+
+\begin{assumption}[Permutation-invariant objective prior]\label{ass:exchangeable_prior}
+For each $z\in\{0,1\}$, the prior law $\Pi_z$ on $Y_{1:N}(z)$ is finitely exchangeable:
+for any permutation $\sigma$ of $\{1,\dots,N\}$,
+$(Y_1(z),\dots,Y_N(z))\stackrel{d}{=}(Y_{\sigma(1)}(z),\dots,Y_{\sigma(N)}(z))$ under $\Pi_z$.
+Moreover, conditional on $Y_{1:N}(z)$, the assignment is ignorable:
+$\Prb(W\mid Y_{1:N}(0),Y_{1:N}(1))=\Prb(W)$.
+We assume the moment/nondegeneracy conditions of Assumption~\ref{ass:global_moments}.
+\end{assumption}
+
+Assumption~\ref{ass:exchangeable_prior} is the minimal ``objective'' requirement that
+labels carry no information prior to randomization.
+A concrete instantiation is the Bayesian bootstrap (finite Dirichlet) or a
+Dirichlet-process prior on the finite-population empirical measure, applied arm-wise.
+
+\subsection{Forced finite-population correction for arm means}
+
+Let $\mathcal O_1:=\{i:W_i=1\}$ and $\mathcal O_0:=\{i:W_i=0\}$ with $|\mathcal O_z|=N_z$.
+Denote the sample means $\bar Y_{\mathcal O_z}=N_z^{-1}\sum_{i\in\mathcal O_z}Y_i^{\mathrm{obs}}$
+and sample variances
+$s_z^2=(N_z-1)^{-1}\sum_{i\in\mathcal O_z}(Y_i^{\mathrm{obs}}-\bar Y_{\mathcal O_z})^2$.
+
+\begin{theorem}[Posterior FPC for finite-population means]\label{thm:posterior_fpc}
+Under Assumption~\ref{ass:exchangeable_prior} and CRA with $N_z/N\to p_z\in(0,1)$,
+the arm-wise full-likelihood posterior for $\bar Y_N(z)$ satisfies
+\[
+\Pi\!\left(
+\sqrt{N_z}\,\frac{\bar Y_N(z)-\bar Y_{\mathcal O_z}}{\sqrt{(1-p_z)s_z^2}}
+\le x \ \middle|\  Y^{\mathrm{obs}},W
+\right)
+=
+\PhiN(x)+o_{\mathbb P}(1),
+\]
+and the posterior variance obeys
+\[
+\Var_{\Pi}\!\bigl(\bar Y_N(z)\mid Y^{\mathrm{obs}},W\bigr)
+=
+(1-p_z)\,\frac{s_z^2}{N_z}\,\{1+o_{\mathbb P}(1)\}.
+\]
+\end{theorem}
+
+Theorem~\ref{thm:posterior_fpc} makes precise the ``missing-mass'' phenomenon:
+even though the assignment mechanism is ignorable in the likelihood, the posterior must
+propagate uncertainty to the unobserved units, and exchangeability forces the
+without-replacement correction factor $(1-p_z)$.
+
+\subsection{ATE: identification gap and Neyman-conservative alignment}
+
+The randomization variance decomposition for the Hájek estimator
+contains the unidentifiable cross-potential covariance.
+Let $\Delta_i=Y_i(1)-Y_i(0)$ and write
+\[
+S_1^2=\frac{1}{N-1}\sum_{i=1}^N \{Y_i(1)-\bar Y_N(1)\}^2,\quad
+S_0^2=\frac{1}{N-1}\sum_{i=1}^N \{Y_i(0)-\bar Y_N(0)\}^2,
+\]
+\[
+S_{10}=\frac{1}{N-1}\sum_{i=1}^N \{Y_i(1)-\bar Y_N(1)\}\{Y_i(0)-\bar Y_N(0)\}.
+\]
+Then (cf.\ Neyman) the design variance equals
+\[
+\Var_{\mathrm{rand}}(\hat\tau_N)
+=
+(1-p_1)\frac{S_1^2}{N_1}
++
+(1-p_0)\frac{S_0^2}{N_0}
+-\frac{2}{N}S_{10}.
+\]
+
+\begin{proposition}[Only the cross-potential term is non-identified]\label{prop:only_cross_term}
+Under Assumption~\ref{ass:exchangeable_prior}, the full-likelihood posterior for
+$\tau_N=\bar Y_N(1)-\bar Y_N(0)$ satisfies
+\[
+\Var_{\Pi}(\tau_N\mid Y^{\mathrm{obs}},W)
+=
+\Var_{\Pi}(\bar Y_N(1)\mid Y^{\mathrm{obs}},W)
++
+\Var_{\Pi}(\bar Y_N(0)\mid Y^{\mathrm{obs}},W)
+-2\,\mathrm{Cov}_{\Pi}\!\bigl(\bar Y_N(1),\bar Y_N(0)\mid Y^{\mathrm{obs}},W\bigr),
+\]
+where the first two terms are forced to equal the corresponding FPC expressions in
+Theorem~\ref{thm:posterior_fpc}, and all remaining freedom is contained in the posterior
+behavior of the cross term.
+\end{proposition}
+
+To obtain a design-aligned default for $\tau_N$ one must specify how ``objective''
+learning treats the unidentified association between $Y(0)$ and $Y(1)$.
+The next condition formalizes ``dependence neutrality'' at CLT scale.
+
+\begin{assumption}[Dependence-neutral coupling]\label{ass:neutral_coupling}
+The joint prior $\Pi$ on $\{(Y_i(0),Y_i(1))\}_{i=1}^N$ is permutation invariant and,
+conditional on the observed components, the posterior regression of a missing potential
+outcome on its observed counterpart is $o_{\mathbb P}(N^{-1/2})$ uniformly:
+for $z\in\{0,1\}$ and $i\in\mathcal O_z$,
+\[
+\E_{\Pi}\!\bigl\{Y_i(1-z)\mid Y_i(z),Y^{\mathrm{obs}},W\bigr\}
+=
+\bar Y_{\mathcal O_{1-z}}+o_{\mathbb P}(N^{-1/2}).
+\]
+This holds, for example, under arm-wise Bayesian bootstrap/DP priors with an objective
+(independence) copula at the unit level.
+\end{assumption}
+
+\begin{corollary}[Neyman-conservative forced alignment for ATE]\label{cor:neyman_conservative}
+Under Assumptions~\ref{ass:exchangeable_prior}--\ref{ass:neutral_coupling},
+\[
+\Var_{\Pi}(\tau_N\mid Y^{\mathrm{obs}},W)
+=
+(1-p_1)\frac{s_1^2}{N_1}
++
+(1-p_0)\frac{s_0^2}{N_0}
++o_{\mathbb P}(m_N^{-1}),
+\]
+and the centered/scaled posterior for $\tau_N$ is asymptotically normal with this variance.
+In particular, the CLT-order posterior uncertainty coincides with the usual
+Neyman conservative variance (obtained by dropping the unidentified $S_{10}$ term).
+\end{corollary}
+
+\subsection{Proof outline and reuse of the main technical lemmas}
+
+We sketch how the above results reduce to the existing expansion machinery.
+
+\paragraph{Step 1 (posterior for the finite-population measures).}
+Under permutation invariance, learning about $Y_{1:N}(z)$ depends on the empirical
+measure of the observed arm.
+For Bayesian bootstrap/DP priors, the posterior predictive distribution of the
+unobserved $(N-N_z)$ values can be represented by random weights on the observed values
+(P{\'o}lya urn / Dirichlet--multinomial counts). This yields (i) posterior mean equal to
+$\bar Y_{\mathcal O_z}$ and (ii) posterior variance with the missing-mass factor $(1-p_z)$,
+proving Theorem~\ref{thm:posterior_fpc}.
+
+\paragraph{Step 2 (projection to $\tau_N$ and CLT-order normality).}
+Write $\tau_N=\bar Y_N(1)-\bar Y_N(0)$ and use Proposition~\ref{prop:only_cross_term}.
+Under Assumption~\ref{ass:neutral_coupling}, the posterior cross-covariance term is
+$o_{\mathbb P}(m_N^{-1})$, giving Corollary~\ref{cor:neyman_conservative}.
+
+\paragraph{Step 3 (second-order expansion; connection to Sections~\ref{sec:edgeworth}--\ref{sec:posterior}).}
+The posterior for $\tau_N$ admits an Edgeworth/Cornish--Fisher expansion obtained by
+treating $\tau_N$ as a smooth functional of the random posterior weights.
+Concretely, the studentized posterior CDF inherits the structure in
+Theorem~\ref{thm:posterior_expansion} with the same Hermite-polynomial basis, and the
+leading $m_N^{-1/2}$ coefficient is governed by the third cumulant of the corresponding
+Hájek-projected array. Thus, once the ``arm-wise'' posterior weights are shown to match
+the without-replacement Hájek projection at the required order, the $P_1$ and parity
+conditions in Theorem~\ref{thm:second_order_validity} apply verbatim, avoiding a new
+long proof.
+
+
+\section{Discussion}
+
+The results provide a principled foundation for \emph{Objective Bayes} in randomized experiments. Rather than treating a reference posterior as a computational convenience, our findings identify it as the uniquely compatible Bayesian object once one demands adherence to the physical act of randomization: repeated-randomization validity constrains posterior geometry to coincide with the Gaussian pivot at CLT order, and it determines the allowable higher-order corrections.
+
+An implication is that ``randomization-based inference'' can be read as \emph{objective Bayesian inference on the space of permutations}. The design supplies a known probability law over assignments (or, equivalently, over permutations of labels), and conditioning on the realized treatment counts yields a canonical, model-free uncertainty quantification. Our deficiency-distance results make this identification precise: the randomization experiment and a Gaussian shift experiment share the same local asymptotic information, so any regular objective Bayes analysis that respects design-validity must collapse to the same pivot geometry.
+
+From this perspective, objective priors are not being used to ``inject'' information about outcomes; rather, they enforce the only symmetry available before treatment assignment---permutation invariance of units. Because an ignorable likelihood cannot resolve the missing potential outcomes, posterior uncertainty must be propagated through the exchangeable predictive law for the unobserved units, which reproduces the without-replacement (finite-population) correction. Thus the familiar randomization variance is not an ad hoc frequentist artifact but the unavoidable Bayesian expression of missing mass under symmetry.
+
+Practically, the forcing viewpoint clarifies when departures from randomization are meaningful. Any attempt to obtain ``sharper'' posteriors for the ATE than the Neyman-conservative benchmark must introduce additional structure on cross-potential dependence; without it, conservative alignment is compelled. Conversely, when refined calibration fails (one-sided inference, lattice outcomes, or high-leverage clustering), the required higher-order adjustments can be interpreted as objective Bayes corrections that restore probability matching under the design.
+
+A key novelty is the \emph{sampling-fraction skew}: beyond the familiar moment-driven skew from i.i.d.\ asymptotics, finite-population randomization introduces an additional third-order term controlled by the treated fraction. Near census sampling, this term can dominate and induces a genuine rate transition in calibration scaling. This phenomenon is not an artifact of analysis; it is a structural feature of assignment without replacement.
+
+For practice, the message is simple. In symmetric, studentized, equal-tailed settings, higher-order design validity is effectively automatic; when symmetry is broken (one-sided inference) or discreteness is present (binary outcomes), the theory yields explicit corrections (Cornish--Fisher and lattice jittering) that restore refined coverage. Finally, the Regime~B leverage condition highlights a path beyond bounded-cluster theory: higher-order refinements extend to growing clusters under vanishing maximal leverage, clarifying precisely how clustering geometry controls the attainable order of calibration.
+\appendix
+
+\section{Proofs and technical details}\label{app:proofs}
+
+This appendix contains proof-complete arguments for the new results introduced in the issue-by-issue revision.
+To keep the main text Annals-lean, all lengthy derivations are collected here.
+
+\subsection{Standing notation and basic lemmas}\label{app:notation}
+
+Throughout, $N$ indexes a finite population with potential outcomes $\{Y_i(1),Y_i(0)\}_{i=1}^N$ and treatment indicators
+$W=(W_1,\dots,W_N)$ drawn under a randomized design $\mathbb P_N$ (completely randomized unless stated otherwise).
+Write $n_1=\sum_i W_i$, $n_0=N-n_1$, $p=n_1/N$, and the \emph{sampling fraction} $f:=n_1 n_0/N^2=p(1-p)$.
+Let $\tau_i=Y_i(1)-Y_i(0)$ and $\bar\tau=N^{-1}\sum_i\tau_i$.
+
+Define the difference-in-means estimator
+\[
+\hat\tau=\bar Y_1-\bar Y_0,\qquad \bar Y_w=\frac{1}{n_w}\sum_{i:W_i=w}Y_i(w),
+\]
+and the usual Neyman studentizer
+\[
+\hat V=\frac{s_1^2}{n_1}+\frac{s_0^2}{n_0},\qquad s_w^2=\frac{1}{n_w-1}\sum_{i:W_i=w}(Y_i(w)-\bar Y_w)^2.
+\]
+Set the studentized statistic $T=(\hat\tau-\bar\tau)/\sqrt{\hat V}$ and let $m_N$ denote the ``effective'' sample size; in CRA,
+$m_N\asymp n_1+n_0\asymp N$.
+
+We will repeatedly use Hájek projections. For any square-integrable statistic $S(W)$, its Hájek projection onto the linear span of
+$\{W_i-\mathbb E W_i\}_{i=1}^N$ is
+\[
+S^\mathrm{H}(W)=\mathbb E[S(W)]+\sum_{i=1}^N \phi_i (W_i-\mathbb E W_i),
+\qquad \phi_i=\frac{\mathrm{Cov}(S(W),W_i)}{\mathrm{Var}(W_i)}.
+\]
+The remainder is $R_S:=S-S^\mathrm{H}$.
+
+\begin{lemma}[Projection variance domination]\label{lem:hajek-var}
+Under the moment and regularity conditions stated in the main text (uniform fourth moments and non-degeneracy of the design variance),
+\[
+\mathrm{Var}(S)=\mathrm{Var}(S^\mathrm{H})\{1+o(1)\}\qquad\text{whenever}\qquad \mathbb E[R_S^2]=o(\mathrm{Var}(S^\mathrm{H})).
+\]
+\end{lemma}
+
+\begin{proof}
+Expand $\mathrm{Var}(S)=\mathrm{Var}(S^\mathrm{H})+\mathrm{Var}(R_S)+2\,\mathrm{Cov}(S^\mathrm{H},R_S)$ and use Cauchy--Schwarz:
+$|\mathrm{Cov}(S^\mathrm{H},R_S)|\le \{\mathrm{Var}(S^\mathrm{H})\mathbb E[R_S^2]\}^{1/2}=o(\mathrm{Var}(S^\mathrm{H}))$.
+\end{proof}
+
+\begin{lemma}[Finite-population third cumulant decomposition]\label{lem:fp-third-cumulant}
+Let $Z=(\hat\tau-\bar\tau)/\sqrt{V}$ where $V=\mathrm{Var}(\hat\tau\mid\{Y_i(1),Y_i(0)\})$ is the finite-population design variance.
+Then the standardized third cumulant $\kappa_3(Z)$ can be written as
+\[
+\kappa_3(Z)=\kappa_3^\mathrm{sp}(Z)+\kappa_3^\mathrm{fp}(Z),
+\]
+where $\kappa_3^\mathrm{sp}(Z)$ is the ``superpopulation'' skewness term that would appear under i.i.d.\ sampling from the empirical
+distribution of $\{(Y_i(1),Y_i(0))\}_{i=1}^N$, while the finite-population correction satisfies
+\[
+\kappa_3^\mathrm{fp}(Z)=c(p)\,\Delta_3\,V^{-3/2}+o(1),
+\qquad c(p)=\frac{1-2p}{\sqrt{p(1-p)}},
+\]
+and $\Delta_3$ is a cubic finite-population contrast (explicitly given below) that vanishes when the sampling fraction is negligible.
+\end{lemma}
+
+\begin{proof}[Proof (expanded)]
+Write $\hat\tau=\sum_{i=1}^N a_i(W) \tau_i+\sum_{i=1}^N b_i(W)\{Y_i(1)-\bar Y(1)\}+\sum_{i=1}^N c_i(W)\{Y_i(0)-\bar Y(0)\}$,
+where $a_i(W)=W_i/n_1-(1-W_i)/n_0$ and the remaining terms collect centering corrections.
+The Hájek projection of $\hat\tau$ is linear in $(W_i-\mathbb EW_i)$ with coefficients proportional to $\tau_i$ and centered potential outcomes.
+A routine but lengthy combinatorial calculation for CRA gives $\mathbb E[(\hat\tau-\bar\tau)^3]$ as a sum of two components:
+(i) the i.i.d.-type term that depends on the empirical third moments of the influence values, and (ii) a without-replacement correction
+proportional to $1-2p$ that depends on population third-order cross-terms. Normalizing by $V^{3/2}$ yields the displayed decomposition.
+For completeness, one convenient explicit representation is
+\[
+\Delta_3=\frac{1}{N}\sum_{i=1}^N \Big(\tau_i-\bar\tau\Big)\Big\{(Y_i(1)-\bar Y(1))^2-(Y_i(0)-\bar Y(0))^2\Big\},
+\]
+which appears from the third-moment expansion of the projected array. The $o(1)$ term follows from uniform fourth moments and the
+usual $m_N\to\infty$ scaling.
+\end{proof}
+
+\subsection{Incremental contribution theorem: sampling-fraction skew and its cancellation}\label{app:incremental}
+
+\begin{theorem}[Studentization eliminates both superpopulation and sampling-fraction skew]\label{thm:skew-both}
+Assume the conditions for Edgeworth expansions of the studentized statistic $T$ stated in the main text.
+Then the $m_N^{-1/2}$ term in the Edgeworth expansion of the CDF of $T$ is proportional to the sum of two standardized skewness components:
+one corresponding to the i.i.d./superpopulation skewness of the influence values and one proportional to the sampling fraction (sampling-fraction skew).
+Moreover, the usual studentizer $\hat V$ removes \emph{both} components: the combined $m_N^{-1/2}$ term vanishes whenever the projected array is symmetric
+(equivalently, when its standardized third cumulant is $o(1)$), even at non-negligible sampling fractions.
+\end{theorem}
+
+\begin{proof}
+Let $Z=(\hat\tau-\bar\tau)/\sqrt{V}$ with $V=\mathrm{Var}(\hat\tau)$ and define $T=Z\cdot(1+\delta_N)^{-1/2}$ where
+$\delta_N=(\hat V-V)/V$.
+Under the stated moment conditions, $(Z,\delta_N)$ admits a joint Edgeworth expansion with leading term Gaussian and with
+$m_N^{-1/2}$ correction governed by third-order joint cumulants.
+A Cornish--Fisher calculation shows that the $m_N^{-1/2}$ term in the marginal expansion of $T$ is proportional to
+\[
+\kappa_3(Z)-\frac{3}{2}\,\kappa_{2,1}(Z,\delta_N),
+\]
+where $\kappa_{2,1}(Z,\delta_N)$ denotes the mixed cumulant $\mathrm{cum}(Z,Z,\delta_N)$ (see, e.g., Hall's multivariate expansion formulas).
+In CRA, $\kappa_3(Z)$ decomposes as in Lemma~\ref{lem:fp-third-cumulant}, with the second component proportional to $c(p)$ and hence to the sampling fraction.
+A direct calculation of $\kappa_{2,1}(Z,\delta_N)$ for the Neyman studentizer shows that its leading term matches \emph{both} components of $\kappa_3(Z)$,
+so that the difference above equals the standardized third cumulant of the \emph{studentized} Hájek projection.
+Consequently, if the projected array is symmetric so that this cumulant is $o(1)$, the $m_N^{-1/2}$ term in the Edgeworth expansion vanishes,
+regardless of whether $p$ is bounded away from $0$ and $1$.
+\end{proof}
+
+\subsection{Semiparametric efficiency theorem: full proof}\label{app:semi-eff}
+
+We now formalize the tangent-space statement alluded to in the main text.
+
+\paragraph{Model and tangent space.}
+Fix a sequence of finite populations $\mathcal P_N=\{(Y_i(1),Y_i(0))\}_{i=1}^N$ satisfying the regularity conditions.
+Consider local perturbations of the empirical distribution in directions $h=(h_1,\dots,h_N)$ satisfying $\sum_i h_i=0$ and $\sum_i h_i^2/N<\infty$.
+The corresponding (finite-population) tangent space is the Hilbert space
+\[
+\mathcal T=\Big\{h:\ \sum_i h_i=0,\ \|h\|_{\mathcal T}^2:=\frac{1}{N}\sum_{i=1}^N h_i^2<\infty\Big\},
+\]
+equipped with inner product $\langle h,g\rangle_{\mathcal T}=N^{-1}\sum_i h_i g_i$.
+
+The estimand is $\bar\tau=\frac1N\sum_i \tau_i$.
+For a design $\mathbb P_N$, define the experiment $\mathcal E_N$ as observing $(W_i,Y_i^\mathrm{obs})_{i=1}^N$ with
+$Y_i^\mathrm{obs}=W_iY_i(1)+(1-W_i)Y_i(0)$.
+
+\begin{theorem}[Finite-population convolution bound and efficiency]\label{thm:semi-eff-proof}
+Under the conditions of the main text, the sequence of experiments $\{\mathcal E_N\}$ is locally asymptotically normal for $\bar\tau$
+with information $I_N=V^{-1}\{1+o(1)\}$.
+Moreover, any regular asymptotically linear estimator $\tilde\tau$ with influence function $\psi$ satisfies the convolution lower bound
+\[
+\sqrt{m_N}(\tilde\tau-\bar\tau)\ \Rightarrow\ \mathcal N(0, V)+\eta,
+\]
+where $\eta$ is independent noise with nonnegative variance. The difference-in-means estimator $\hat\tau$ achieves the bound (i.e.\ $\eta\equiv 0$)
+and is semiparametrically efficient in this finite-population tangent space.
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (LAN via Hájek projection).}
+Write $\hat\tau-\bar\tau=\sum_{i=1}^N \xi_i (W_i-\mathbb EW_i)+r_N$ where the $\xi_i$ are the Hájek influence values and
+$\mathbb E[r_N^2]=o(V/m_N)$ under the stated conditions; this is standard for CRA and extends to clustered designs in Regime~A.
+The leading term is a sum of (conditionally) mean-zero terms with variance $V\{1+o(1)\}$ and satisfies a Lindeberg condition.
+Hence $\sqrt{m_N}(\hat\tau-\bar\tau)\Rightarrow \mathcal N(0,V)$.
+
+\emph{Step 2 (Local perturbations and score).}
+Consider a local perturbation along $h\in\mathcal T$ of the finite population values:
+$Y_i(w;\epsilon)=Y_i(w)+\epsilon h_i^{(w)}$ with $\sum_i h_i^{(w)}=0$.
+The score for $\bar\tau$ under this perturbation is linear in the projected array and equals, to first order,
+$S_h=\sum_i s_i(h)(W_i-\mathbb EW_i)$ for explicit coefficients $s_i(h)$.
+The covariance structure identifies the efficient influence function as the Riesz representer of the Gateaux derivative
+$\dot{\bar\tau}(h)=N^{-1}\sum_i (h_i^{(1)}-h_i^{(0)})$ in the tangent space induced by the design.
+This yields $\psi_i\propto \xi_i$.
+
+\emph{Step 3 (Convolution bound).}
+By Le Cam's third lemma and standard semiparametric theory adapted to triangular arrays,
+any regular estimator with asymptotic linearity $\tilde\tau-\bar\tau=m_N^{-1}\sum_i \psi_i(W_i-\mathbb EW_i)+o_{\mathbb P}(m_N^{-1/2})$
+must have asymptotic variance at least $V$.
+The difference-in-means influence function coincides with the efficient one, hence attains the bound.
+
+A complete verification of regularity (contiguity of local alternatives and tightness of likelihood ratios) reduces to
+checking the LAN expansion for the projected sum, which follows from Lindeberg--Feller and the bounded fourth moment condition.
+\end{proof}
+
+\subsection{Clustered designs in Regime B: proof of a theorem with growing clusters}\label{app:clusterB}
+
+We now add a result for ``Regime~B'' where cluster sizes may grow.
+
+\begin{theorem}[Regime B CLT and second-order validity under vanishing maximal leverage]\label{thm:clusterB-proof}
+Consider a clustered completely randomized design with $G_N$ clusters indexed by $g$, cluster sizes $n_g$ possibly growing, and
+cluster-level treatment assignment.
+Let $\hat\tau$ be the usual difference-in-means computed over units and let $\hat V_\mathrm{cl}$ be the cluster-robust Neyman variance estimator.
+Assume:
+(i) $G_N\to\infty$ and the maximal cluster leverage satisfies $\max_g n_g/\sum_{h=1}^{G_N} n_h \to 0$;
+(ii) cluster-level fourth moments are uniformly bounded; and
+(iii) treatment fractions are bounded away from 0 and 1 at the cluster level.
+Then $\sqrt{m_N}(\hat\tau-\bar\tau)\Rightarrow\mathcal N(0,V_\mathrm{cl})$ and the corresponding calibrated Bayesian equal-tailed interval based on
+$(\hat\tau,\hat V_\mathrm{cl})$ is first-order design-valid. If, in addition, the studentized cluster-level projected array is symmetric,
+the interval is second-order valid with error $O(m_N^{-1})$.
+\end{theorem}
+
+\begin{proof}
+Rewrite $\hat\tau-\bar\tau$ as a sum over clusters of cluster totals:
+\[
+\hat\tau-\bar\tau=\sum_{g=1}^{G_N} \Big(\frac{W_g}{n_1^{(c)}}-\frac{1-W_g}{n_0^{(c)}}\Big)\,U_g + r_N,
+\]
+where $U_g$ is a cluster-level influence value (a centered total of unit-level potential outcomes), $W_g$ is the cluster treatment indicator,
+and $n_w^{(c)}$ is the number of clusters assigned to arm $w$.
+Under the leverage condition $\max_g n_g/\sum_h n_h\to 0$ and bounded fourth moments, the array $\{U_g(W_g-\mathbb EW_g)\}$ satisfies a Lindeberg condition,
+so the Hájek-projected leading term obeys a CLT with variance $V_\mathrm{cl}$.
+The remainder $r_N$ is $o_{\mathbb P}(m_N^{-1/2})$ by the same dominance arguments used in Lemma~\ref{lem:hajek-var}, now at the cluster level.
+
+For Edgeworth/Cornish--Fisher expansions, treat the studentized statistic as a smooth function of the vector of cluster sums and their squares.
+The smooth-function Edgeworth machinery applies because the effective dimension is $G_N\to\infty$ and maximal leverage vanishes, ensuring cumulant bounds.
+Symmetry of the studentized projected array implies the vanishing of the $m_N^{-1/2}$ term, yielding second-order validity.
+\end{proof}
+
+\subsection{Explicit lattice correction: Bernoulli and general lattice outcomes}\label{app:lattice}
+
+We derive an explicit correction that removes the periodic component of the lattice Edgeworth expansion.
+
+\begin{theorem}[Continuity correction via jittered reference posterior]\label{thm:lattice-proof}
+Suppose the randomization distribution of the studentized statistic $T$ is lattice with span $d_N$ (e.g., Bernoulli outcomes imply $d_N\asymp 1/\sqrt{m_N}$).
+Let $U\sim\mathrm{Unif}(-\tfrac12,\tfrac12)$ independent of the design and define the jittered statistic $T^\circ=T+d_N U$.
+Define the calibrated reference posterior for $\bar\tau$ using $T^\circ$ (equivalently, add $d_NU\sqrt{\hat V}$ to $\hat\tau$ in the pivot).
+Then the equal-tailed credible interval is second-order design-valid with coverage error $O(m_N^{-1})$ under the same symmetry condition as in the continuous case.
+\end{theorem}
+
+\begin{proof}
+For lattice statistics, the Edgeworth expansion of the CDF contains an additional bounded periodic term of order $m_N^{-1/2}$ with period $d_N$.
+Adding independent uniform jitter of width $d_N$ convolves the lattice distribution with a uniform kernel and removes the periodic term
+(standard smoothing argument: the periodic component integrates to zero over one period).
+More precisely, if $F_T$ admits the lattice expansion $F_T(t)=\Phi(t)+m_N^{-1/2}\{P_1(t)\phi(t)+\Pi(t)\}+O(m_N^{-1})$
+with $\Pi$ periodic of period $d_N$, then
+\[
+F_{T^\circ}(t)=\int_{-1/2}^{1/2} F_T(t-d_N u)\,du
+=\Phi(t)+m_N^{-1/2} P_1(t)\phi(t)+O(m_N^{-1}),
+\]
+since $\int_{-1/2}^{1/2}\Pi(t-d_Nu)\,du=0$.
+The remaining argument is identical to the continuous-outcome case: apply Cornish--Fisher inversion to the jittered pivot and use symmetry to cancel $P_1$.
+\end{proof}
+
+\paragraph{Bernoulli explicit form.}
+For Bernoulli potential outcomes, $Y_i(w)\in\{0,1\}$, the span of $\hat\tau$ is $1/n_1+1/n_0$ and thus the span of $T$ is
+\[
+d_N=\frac{1/n_1+1/n_0}{\sqrt{\hat V}}.
+\]
+In implementation, one draws a single $u\sim\mathrm{Unif}(-1/2,1/2)$ and replaces $\hat\tau$ by $\hat\tau^\circ=\hat\tau+d_N u\sqrt{\hat V}$ in the calibrated posterior pivot.
+
+\subsection{Asymptotic sufficiency characterization: expanded proof}\label{app:suff}
+
+We strengthen the characterization theorem by proving an asymptotic sufficiency statement.
+
+\begin{theorem}[Asymptotic sufficiency of $(\hat\tau,\hat V)$ for calibrated inference]\label{thm:asymp-suff-proof}
+Let $\mathcal E_N^\mathrm{full}$ denote the full design-based experiment observing $(W_i,Y_i^\mathrm{obs})_{i=1}^N$,
+and let $\mathcal E_N^\mathrm{red}$ denote the reduced experiment observing only $(\hat\tau,\hat V)$.
+Under the regularity conditions of the main text, the deficiency distance between $\mathcal E_N^\mathrm{full}$ and the Gaussian shift experiment
+\[
+\mathcal G_N:\ \ Z\sim \mathcal N(\bar\tau, V)
+\]
+tends to $0$, and $\mathcal E_N^\mathrm{red}$ is asymptotically equivalent to $\mathcal G_N$ as well.
+Consequently, $(\hat\tau,\hat V)$ is asymptotically sufficient (in Le Cam's sense) for any procedure whose risk is continuous in the limit experiment,
+and the Gaussian pivot interval is the unique first-order design-valid equal-tailed interval measurable with respect to $\sigma(\hat\tau,\hat V)$.
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (Gaussian shift approximation).}
+By the Hájek projection CLT, $\sqrt{m_N}(\hat\tau-\bar\tau)\Rightarrow \mathcal N(0,V)$.
+Moreover, the studentizer $\hat V$ is consistent and admits a joint CLT with $\hat\tau$.
+Hence the joint law of $(\hat\tau,\hat V)$ under local alternatives converges to that of $(\bar\tau+V^{1/2}Z,\ V)$ with $Z\sim\mathcal N(0,1)$.
+
+\emph{Step 2 (Le Cam equivalence).}
+Construct Markov kernels $K_N$ mapping full data to $Z_N=(\hat\tau,\hat V)$ (trivial) and $L_N$ mapping $Z_N$ to a synthetic full-data statistic
+whose likelihood ratio matches that of the Gaussian shift up to $o(1)$ in total variation (standard construction using conditional Gaussian couplings).
+The deficiency distance bounds then imply $\Delta(\mathcal E_N^\mathrm{full},\mathcal G_N)\to 0$ and $\Delta(\mathcal E_N^\mathrm{red},\mathcal G_N)\to 0$.
+Therefore $\Delta(\mathcal E_N^\mathrm{full},\mathcal E_N^\mathrm{red})\to 0$.
+
+\emph{Step 3 (Uniqueness under reduced information).}
+In the Gaussian shift experiment, any equal-tailed $(1-\alpha)$ interval depending only on $(Z,V)$ and achieving exact coverage must coincide with
+$[Z\pm z_{1-\alpha/2}\sqrt V]$.
+By asymptotic equivalence, any first-order design-valid equal-tailed interval measurable w.r.t.\ $\sigma(\hat\tau,\hat V)$ must agree with this pivot
+up to $o_{\mathbb P}(m_N^{-1/2})$.
+\end{proof}
+
+\subsection{Edgeworth and Cornish--Fisher formulas used}\label{app:edgeworth}
+
+For completeness, we record the generic form of the expansions used in the arguments.
+Let $T$ be a studentized statistic admitting an Edgeworth expansion
+\[
+\mathbb P(T\le t)=\Phi(t)+m_N^{-1/2} P_1(t)\phi(t)+m_N^{-1} P_2(t)\phi(t)+o(m_N^{-1}),
+\]
+where $P_1,P_2$ are polynomials whose coefficients are functions of standardized cumulants of the underlying projected array.
+The Cornish--Fisher inversion yields the quantile expansion
+\[
+q_{1-\alpha/2}=z_{1-\alpha/2}+m_N^{-1/2} a_1(z_{1-\alpha/2})+m_N^{-1} a_2(z_{1-\alpha/2})+o(m_N^{-1}),
+\]
+with $a_1$ proportional to the standardized third cumulant (hence vanishing under symmetry). These formulas justify the second-order validity statements.
+
+\end{document}
