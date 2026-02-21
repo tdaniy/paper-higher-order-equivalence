@@ -149,6 +149,7 @@ There exists $\delta>0$ such that, for $z\in\{0,1\}$,
 uniformly in $N$ for some constant $C<\infty$.
 Moreover, the finite-population variances that appear in the Hájek projection limits are uniformly nondegenerate: there exist constants $0<c<C<\infty$ such that the asymptotic variance $V$ of $m_N^{1/2}(\hat\tau-\tau)$ satisfies $c\le V\le C$, and the treated fraction satisfies $p\in(0,1)$ in the sense that $N_1/N\to p$.
 \end{assumption}
+The higher-order expansions and total-variation/deficiency bounds use the $4+\delta$ moment condition above; CLT-order results rely only on the CLT and variance-regularity conditions stated here.
 
 
 Define the studentized statistic
@@ -188,6 +189,7 @@ where $c_1(p),c_0(p),c_\Delta(p)$ depend only on $p$. Moreover, the \emph{design
 where $\tilde c_\Delta(p)$ is a smooth function bounded away from $0$ and $\infty$ on compact subsets of $(0,1)$. In particular, at $p=1/2$ the finite-population (sampling-fraction) contribution to skewness cancels, reflecting the symmetry of complete randomization at equal allocation. The third term is absent in superpopulation i.i.d.\ asymptotics and
 is proportional to the sampling fraction. Studentization cancels this term jointly with the superpopulation-style
 terms under the finite-population symmetry condition of Theorem~\ref{thm:second_order_validity}.
+The $(1-2p)$ factor itself is classical in sampling theory; the novelty here is its structural role in higher-order calibration and the near-census rate transition.
 \end{theorem}
 
 \begin{remark}[Decomposition of randomness and the $p=1/2$ crossover]\label{rem:decomp_randomness}
@@ -280,6 +282,7 @@ If $P_1$ is even, then equal-tailed credible intervals satisfy
 1-\alpha + O(\mN^{-1}).
 \]
 \end{theorem}
+Here ``parity'' refers to evenness of the leading Edgeworth polynomial $P_1$, not parity of $N$.
 
 \begin{proposition}[Parity-fails lower bound]\label{prop:parity_fail}
 If the leading Edgeworth term $P_1$ has a nonzero odd component, then there exist sequences of finite populations
@@ -319,6 +322,7 @@ finite-population CLT and variance regularity conditions in Section~\ref{sec:set
 \]
 where the probability is under the randomization distribution.
 \end{enumerate}
+These regularity conditions exclude discontinuous or jagged procedures; they do not assume Gaussian quantiles or pivot form.
 
 Then necessarily,
 \[
@@ -451,6 +455,7 @@ Then, under the same finite-population symmetry condition as in Theorem~\ref{thm
 \]
 and without the symmetry condition the coverage error is $O(\mN^{-1/2})$.
 \end{theorem}
+Without jittering, the periodic term yields a Kolmogorov gap of order $\mN^{-1/2}$, which implies a deficiency lower bound for threshold losses; the jittering correction removes this obstruction.
 
 \begin{remark}[Lattice span for Bernoulli outcomes]\label{rem:lattice_span}
 Under CRA with Bernoulli potential outcomes, the lattice span satisfies $\Delta_N\asymp d_N\asymp \mN^{-1/2}$ (see
@@ -476,6 +481,41 @@ sufficiency statement therefore rules out first-order improvements from procedur
 $(\hat\tau,\hat V)$.
 Appendix~\ref{app:suff} gives a proof-complete sufficiency/equivalence statement with explicit deficiency bounds
 as Theorem~\ref{thm:asymp-suff-proof}.
+
+\begin{proposition}[Rate-optimality of experiment equivalence]\label{prop:rate_opt}
+Assume the conditions of Theorem~\ref{thm:edgeworth}. If
+\[
+\liminf_{N\to\infty}\sup_{x\in\R}\bigl|P_1(x)\phi(x)\bigr|>0,
+\]
+then there exists $c>0$ such that
+\[
+\Delta(\mathcal E_N,\mathcal G_N)\ \ge\ c\,\mN^{-1/2}+o(\mN^{-1/2}).
+\]
+If the leading term vanishes and
+\[
+\liminf_{N\to\infty}\sup_{x\in\R}\bigl|P_2(x)\phi(x)\bigr|>0,
+\]
+then there exists $c'>0$ such that
+\[
+\Delta(\mathcal E_N,\mathcal G_N)\ \ge\ c'\,\mN^{-1}+o(\mN^{-1}).
+\]
+Consequently, whenever an upper bound $\Delta(\mathcal E_N,\mathcal G_N)\le C\,\mN^{-1/2}$ holds, the generic case is
+rate-optimal, and in the cancellation regime the optimal rate improves to $\mN^{-1}$.
+\end{proposition}
+
+\begin{proof}
+Let $\mathcal E_N^{S}$ and $\mathcal G_N^{S}$ denote the experiments induced by $S_N$ and a standard normal $S$,
+respectively. By data processing, $\Delta(\mathcal E_N,\mathcal G_N)\ge \Delta(\mathcal E_N^{S},\mathcal G_N^{S})$.
+For a threshold loss $L(a,s)=\mathbf 1\{a\neq \mathbf 1(s\le x)\}$, the risk difference equals
+$|\Pr(S_N\le x)-\Phi(x)|$. The uniform Edgeworth expansion in Theorem~\ref{thm:edgeworth} gives
+$\Pr(S_N\le x)-\Phi(x)=\mN^{-1/2}P_1(x)\phi(x)+o(\mN^{-1/2})$ uniformly in $x$; choosing $x$ near the maximizer yields the
+first bound. If the $P_1$ term vanishes, the same argument with the $P_2$ term yields the $\mN^{-1}$ bound.
+\end{proof}
+
+\begin{remark}
+We do not claim uniqueness of the Markov kernels; the proposition shows that the resulting deficiency bound is
+rate-optimal (in general) in the Le Cam sense, up to constants.
+\end{remark}
 
 \begin{definition}[Regular $(\tauN,\VN)$-measurable Bayes interval]\label{def:regular_pivot}
 An equal-tailed Bayesian interval $C_N=[L_N,U_N]$ is regular and $(\tauN,\VN)$-measurable if
