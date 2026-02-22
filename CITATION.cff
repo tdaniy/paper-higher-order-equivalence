@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it."
+title: "Higher-Order Equivalence of Bayesian and Randomization Inference in Finite Populations"
+authors:
+  - family-names: "Daniyarov"
+    given-names: "Talgat"
+version: "0.1.0"
+date-released: "2026-02-22"
+license: "MIT"

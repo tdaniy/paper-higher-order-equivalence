@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kill-shot simulation: coverage error vs sampling fraction p.
+"""Sampling-fraction simulation: coverage error vs sampling fraction p.
 
 Pure-Python (no numpy) so it runs in minimal environments. Produces a CSV and
 optionally a plot if matplotlib is available.
@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import os
 import random
+import sys
 from dataclasses import dataclass
 import time
 from typing import List, Tuple
@@ -237,7 +239,8 @@ def write_csv(path: str, rows: List[dict]) -> None:
 def try_plot(rows: List[dict], path: str, log_scale: bool = False) -> None:
     try:
         import os
-        os.environ.setdefault("MPLCONFIGDIR", "experiment/.mpl_cache")
+        cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".mpl_cache"))
+        os.environ.setdefault("MPLCONFIGDIR", cache_dir)
         import matplotlib.pyplot as plt
     except Exception:
         return
@@ -266,7 +269,7 @@ def try_plot(rows: List[dict], path: str, log_scale: bool = False) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Kill-shot coverage simulation")
+    parser = argparse.ArgumentParser(description="Sampling-fraction coverage simulation")
     parser.add_argument("--n", type=int, default=200, help="population size")
     parser.add_argument("--b", type=int, default=30, help="number of populations")
     parser.add_argument("--r-skew", type=int, default=400, help="assignments for skewness estimation")
@@ -283,10 +286,31 @@ def parse_args() -> argparse.Namespace:
         default=[0.2, 0.35, 0.5, 0.65, 0.8, 0.9],
         help="sampling fractions",
     )
-    parser.add_argument("--csv", type=str, default="experiment/kill_shot_results.csv")
-    parser.add_argument("--plot", type=str, default="experiment/kill_shot_results.png")
+    parser.add_argument("--run-id", type=str, help="optional run ID for output organization")
+    base_dir = os.path.dirname(__file__)
+    repro_root = os.path.abspath(os.path.join(base_dir, ".."))
+    outputs_root = os.path.join(repro_root, "outputs", "sampling_fraction")
+    plots_root = os.path.join(repro_root, "plots", "sampling_fraction")
+    parser.add_argument(
+        "--csv",
+        type=str,
+        default=os.path.join(outputs_root, "sampling_fraction_results.csv"),
+    )
+    parser.add_argument(
+        "--plot",
+        type=str,
+        default=os.path.join(plots_root, "sampling_fraction_results.png"),
+    )
     parser.add_argument("--logy", action="store_true", help="log-scale y-axis for coverage error")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.run_id:
+        outputs_root = os.path.join(outputs_root, args.run_id, "tables")
+        plots_root = os.path.join(plots_root, args.run_id, "figs")
+        if args.csv.endswith("sampling_fraction_results.csv"):
+            args.csv = os.path.join(outputs_root, "sampling_fraction_results.csv")
+        if args.plot.endswith("sampling_fraction_results.png"):
+            args.plot = os.path.join(plots_root, "sampling_fraction_results.png")
+    return args
 
 
 def main() -> None:
@@ -304,6 +328,9 @@ def main() -> None:
         mu=args.lognormal_mu,
         sigma=args.lognormal_sigma,
     )
+    os.makedirs(os.path.dirname(args.csv), exist_ok=True)
+    if args.plot:
+        os.makedirs(os.path.dirname(args.plot), exist_ok=True)
     write_csv(args.csv, rows)
     try_plot(rows, args.plot, log_scale=args.logy)
     # Print a concise summary

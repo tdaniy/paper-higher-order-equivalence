@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rate-grid simulation: scaled coverage error vs N for selected p values.
 
-Uses kill_shot_sim.run_simulation to compute coverage errors, then rescales
+Uses sampling_fraction_sim.run_simulation to compute coverage errors, then rescales
 by sqrt(N) and N for rate diagnostics. Produces CSV and plots.
 """
 from __future__ import annotations
@@ -17,8 +17,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import sys
 
-sys.path.insert(0, os.path.dirname(__file__))
-import kill_shot_sim as ks
+base_dir = os.path.dirname(__file__)
+sys.path.insert(0, base_dir)
+import sampling_fraction_sim as sim
 
 
 def parse_args() -> argparse.Namespace:
@@ -45,23 +46,57 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--delta", type=float, default=0.5, help="constant treatment effect")
     parser.add_argument("--lognormal-mu", type=float, default=0.0, help="lognormal mean (on log scale)")
     parser.add_argument("--lognormal-sigma", type=float, default=1.2, help="lognormal sigma (on log scale)")
-    parser.add_argument("--csv", type=str, default="experiment/kill_shot_rate_grid.csv")
-    parser.add_argument("--plot-sqrt", type=str, default="experiment/kill_shot_rate_grid_sqrt.png")
-    parser.add_argument("--plot-linear", type=str, default="experiment/kill_shot_rate_grid_linear.png")
+    parser.add_argument("--run-id", type=str, help="optional run ID for output organization")
+    outputs_dir = os.path.abspath(os.path.join(base_dir, "..", "outputs", "rate_grid"))
+    plots_dir = os.path.abspath(os.path.join(base_dir, "..", "plots", "rate_grid"))
+    parser.add_argument(
+        "--csv",
+        type=str,
+        default=os.path.join(outputs_dir, "rate_grid.csv"),
+    )
+    parser.add_argument(
+        "--plot-sqrt",
+        type=str,
+        default=os.path.join(plots_dir, "rate_grid_sqrt.png"),
+    )
+    parser.add_argument(
+        "--plot-linear",
+        type=str,
+        default=os.path.join(plots_dir, "rate_grid_linear.png"),
+    )
     parser.add_argument("--logy", action="store_true", help="log-scale y-axis for plots")
     parser.add_argument("--ylim", type=float, nargs=2, help="y-axis limits, e.g. --ylim -2 2")
     parser.add_argument("--slope-k", type=int, default=6, help="number of largest-N points for slope fit")
-    parser.add_argument("--slope-csv", type=str, default="experiment/kill_shot_rate_grid_slopes.csv")
+    parser.add_argument(
+        "--slope-csv",
+        type=str,
+        default=os.path.join(outputs_dir, "rate_grid_slopes.csv"),
+    )
     parser.add_argument("--plot-only", action="store_true", help="skip simulation and replot from CSV")
     parser.add_argument("--input-csv", type=str, help="CSV to read when --plot-only is set")
     parser.add_argument("--plot-raw-p05", type=str, help="output path for raw error p=0.5 plot")
     parser.add_argument("--jobs", type=int, default=0, help="number of parallel workers (0=auto)")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.run_id:
+        outputs_dir = os.path.join(outputs_dir, args.run_id, "tables")
+        plots_dir = os.path.join(plots_dir, args.run_id, "figs")
+        if args.csv.endswith("rate_grid.csv"):
+            args.csv = os.path.join(outputs_dir, "rate_grid.csv")
+        if args.plot_sqrt.endswith("rate_grid_sqrt.png"):
+            args.plot_sqrt = os.path.join(plots_dir, "rate_grid_sqrt.png")
+        if args.plot_linear.endswith("rate_grid_linear.png"):
+            args.plot_linear = os.path.join(plots_dir, "rate_grid_linear.png")
+        if args.slope_csv.endswith("rate_grid_slopes.csv"):
+            args.slope_csv = os.path.join(outputs_dir, "rate_grid_slopes.csv")
+        if args.plot_raw_p05 is None:
+            args.plot_raw_p05 = os.path.join(plots_dir, "rate_grid_raw_p05.png")
+    return args
 
 
 def write_csv(path: str, rows: List[dict]) -> None:
     if not rows:
         return
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     fieldnames = list(rows[0].keys())
     with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -87,7 +122,8 @@ def read_csv(path: str) -> List[dict]:
 def plot_scaled(rows: List[dict], path: str, scale: str, logy: bool, ylim: List[float] | None) -> None:
     try:
         import os
-        os.environ.setdefault("MPLCONFIGDIR", "experiment/.mpl_cache")
+        cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".mpl_cache"))
+        os.environ.setdefault("MPLCONFIGDIR", cache_dir)
         import matplotlib.pyplot as plt
     except Exception:
         return
@@ -128,13 +164,15 @@ def plot_scaled(rows: List[dict], path: str, scale: str, logy: bool, ylim: List[
     plt.grid(True, alpha=0.3)
     plt.legend(fontsize=7, ncol=2)
     plt.tight_layout()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     plt.savefig(path, dpi=200)
 
 
 def plot_raw_p05(rows: List[dict], path: str) -> None:
     try:
         import os
-        os.environ.setdefault("MPLCONFIGDIR", "experiment/.mpl_cache")
+        cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".mpl_cache"))
+        os.environ.setdefault("MPLCONFIGDIR", cache_dir)
         import matplotlib.pyplot as plt
     except Exception:
         return
@@ -162,6 +200,7 @@ def plot_raw_p05(rows: List[dict], path: str) -> None:
     plt.grid(True, alpha=0.3)
     plt.legend(fontsize=8, ncol=2)
     plt.tight_layout()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     plt.savefig(path, dpi=200)
 
 
@@ -218,7 +257,7 @@ def estimate_slopes(rows: List[dict], scale: str, k: int) -> List[dict]:
 
 def _simulate_one_n(args: Tuple[int, int, int, int, List[float], float, int, float, float, float]) -> Tuple[int, List[dict]]:
     n, b, r_skew, r_cov, p_grid, alpha, seed, delta, mu, sigma = args
-    sim_rows = ks.run_simulation(
+    sim_rows = sim.run_simulation(
         n=n,
         b=b,
         r_skew=r_skew,
@@ -258,7 +297,7 @@ def main() -> None:
 
         if jobs <= 1 or total == 1:
             for idx, n in enumerate(args.n_grid, 1):
-                sim_rows = ks.run_simulation(
+                sim_rows = sim.run_simulation(
                     n=n,
                     b=args.b,
                     r_skew=args.r_skew,

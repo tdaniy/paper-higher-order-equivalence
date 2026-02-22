@@ -1,0 +1,2 @@
+run_id,config,base_seed,outputs_path,plots_path,logs_path,notes
+run_legacy,,,"outputs/rate_grid/run_legacy/tables","plots/rate_grid/run_legacy/figs","logs/run_legacy","migrated legacy artifacts"

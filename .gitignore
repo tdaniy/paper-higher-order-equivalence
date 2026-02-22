@@ -23,3 +23,20 @@
 paper/paper.pdf
 experiment/*.pdf
 note/*.pdf
+
+# Python caches/virtualenvs
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# OS/editor artifacts
+.DS_Store
+Thumbs.db
+
+# Matplotlib cache
+experiment/.mpl_cache/
+experiment/repro/.mpl_cache/

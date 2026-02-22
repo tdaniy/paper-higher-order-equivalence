@@ -1,0 +1,16 @@
+[project]
+name = "repro"
+version = "0.1.0"
+description = "Reproducible environment for paper simulations"
+requires-python = "==3.12.3"
+dependencies = [
+  "numpy==1.26.4",
+]
+
+[project.optional-dependencies]
+plot = [
+  "matplotlib==3.8.4",
+]
+
+[tool.uv]
+# Lockfile manages exact versions.

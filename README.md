@@ -27,7 +27,11 @@ The `Makefile` uses `latexmk` when available, and falls back to running `pdflate
 
 ## Experiments
 
-The `experiment/` folder contains the reproducibility protocol and will host scripts and data needed to reproduce the numerical experiments in the paper.
+The `experiment/` folder contains the reproducibility protocol and the self-contained reproducible environment for numerical experiments. See `experiment/README.md` for details.
+
+## Citation
+
+See `CITATION.cff` for citation metadata.
 
 ## Clean build artifacts
 
