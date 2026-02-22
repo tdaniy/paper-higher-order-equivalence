@@ -44,7 +44,7 @@
 \end{aug}
 
 \begin{abstract}
-We study inference for average treatment effects under finite-population randomization. Our main result establishes an explicit Le Cam deficiency-distance equivalence between the randomization experiment and a Gaussian shift experiment, yielding asymptotic sufficiency of $(\hat\tau,\hat V)$ at CLT order. Consequently, within the reduced information set $(\hat\tau,\hat V)$, any regular design-valid equal-tailed Bayesian interval must coincide with the studentized Gaussian pivot up to $o_p(m_N^{-1/2})$. We further derive higher-order refinements that isolate a sampling-fraction skew term and characterize parity-driven second-order validity, with extensions to clustered designs and lattice outcomes.
+We study inference for average treatment effects under finite-population randomization. Our main result establishes Le Cam deficiency-distance equivalence between the randomization experiment and a Gaussian shift experiment, yielding CLT-order sufficiency of $(\hat\tau,\hat V)$. Consequently, any regular design-valid equal-tailed Bayesian interval measurable with respect to $(\hat\tau,\hat V)$ coincides with the studentized Gaussian pivot up to $o_p(m_N^{-1/2})$. We further derive higher-order refinements that isolate a sampling-fraction skew term and characterize parity-driven second-order validity, with extensions to clustered designs and lattice outcomes.
 \end{abstract}
 
 \begin{keyword}[class=MSC]
@@ -74,8 +74,9 @@ Our main contribution is an experiment-level approximation (Theorem~\ref{thm:suf
 \item Asymptotic sufficiency of $(\hat\tau,\hat V)$ at CLT order; within $\sigma(\hat\tau,\hat V)$ any regular design-valid equal-tailed Bayes procedure matches the Gaussian pivot up to $o_p(m_N^{-1/2})$.
 \item Higher-order refinements that isolate sampling-fraction skew and parity-driven regimes, with extensions to lattice outcomes and clustered designs.
 \end{itemize}
-The logic is: experiment equivalence $\Rightarrow$ sufficiency for bounded-loss decision problems under reduced information $\Rightarrow$ forced CLT-order pivot geometry; the remainder refines or extends this spine.
-This can be read as an impossibility statement: within the reduced-information regular class, any design-valid equal-tailed interval that departs from the Gaussian pivot must forfeit CLT-order validity.
+We also show the deficiency bound is rate-optimal generically (and improves under symmetry cancellation), and we treat lattice outcomes as a deliberate stress test where periodicity obstructs second-order validity unless jittered.
+The logic is: experiment equivalence $\Rightarrow$ sufficiency for bounded-loss decision problems under reduced information $\Rightarrow$ forced CLT-order pivot geometry; thus any regular reduced-information equal-tailed interval that departs from the Gaussian pivot forfeits CLT-order validity.
+We highlight the near-census regime as a deliberate stress test, where finite-population skew terms can dominate and second-order behavior changes.
 
 Our scope is limited to regular, design-valid procedures measurable with respect to $(\hat\tau,\hat V)$ and to randomized designs
 without interference or adaptive assignment. Nonregular priors, procedures that depend on richer information than
@@ -88,7 +89,7 @@ We make explicit what the main theorem does not imply and how it relates to exis
 
 Probability matching priors in i.i.d.\ likelihood models likewise do not address the geometry of finite-population randomization experiments, where assignment without replacement induces dependence and sampling-fraction effects. Edgeworth expansions in finite populations exist, but the novelty here is coupling those expansions to experiment-level equivalence and the resulting sufficiency restriction, which pins down CLT-order Bayes/randomization alignment for a well-defined class of procedures rather than for arbitrary posteriors.
 
-The remainder of the paper proceeds as follows. Section~2 introduces the finite-population framework and notation. Section~3 develops the third-cumulant decomposition and isolates the sampling-fraction skew. Section~4 establishes a uniform studentized Edgeworth expansion, which underpins the posterior expansion in Section~5 and the structural second-order validity results in Section~6. Section~7 formalizes the calibration operator. Section~8 and Section~9 present extensions to clustered designs and lattice outcomes. Section~10 establishes experiment equivalence and asymptotic sufficiency. Section~11 presents the full-likelihood objective Bayes alignment, and Section~12 concludes with discussion. The appendix contains the construction of Markov kernels and total-variation bounds underlying the equivalence, together with proof details for the Regime~B sharpness arguments.
+The remainder of the paper proceeds as follows. Section~2 introduces the finite-population framework and notation. Section~3 develops the third-cumulant decomposition and isolates the sampling-fraction skew. Section~4 establishes a uniform studentized Edgeworth expansion, which underpins the posterior expansion in Section~5 and the structural second-order validity results in Section~6. Section~7 formalizes the calibration operator. Section~8 and Section~9 present extensions to clustered designs and lattice outcomes. Section~10 establishes experiment equivalence and asymptotic sufficiency. Section~11 presents the full-likelihood objective Bayes alignment, and Section~12 concludes with discussion. The appendix contains the construction of Markov kernels and total-variation bounds underlying the equivalence, together with proof details for the Regime~B sharpness arguments. For orientation, the spine is: experiment equivalence $\Rightarrow$ reduced-information sufficiency $\Rightarrow$ forced CLT-order geometry; the intervening sections supply the higher-order refinements and extensions.
 
 \begin{table}[t]
 \centering
@@ -157,6 +158,9 @@ Moreover, the finite-population variances that appear in the Hájek projection l
 Higher-order expansions and the total-variation/deficiency bounds throughout the paper use the $4+\delta$ moment condition above; weakening the moment assumptions for CLT-order equivalence is plausible but would require different tools and is left open.
 \begin{remark}[Moment boundary and rate sharpness]\label{rem:pareto_boundary}
 A Pareto-type finite-population sequence with tail index $\alpha\in(2,3)$ has finite variance but infinite third moment. In this setting a CLT for the studentized mean can still hold, yet the Kolmogorov distance to the Gaussian limit decays at rate $N^{1-\alpha/2}$ rather than $N^{-1/2}$. Consequently, a uniform $m_N^{-1/2}$ deficiency bound cannot hold without the $4+\delta$ moment assumption. This does \emph{not} preclude $\Delta(\mathcal E_N,\mathcal G_N)\to 0$; it only limits the attainable rate. See the complementary note for a concrete construction.
+\end{remark}
+\begin{remark}\label{rem:pareto_boundary_tv}
+In particular, the total-variation/deficiency control underlying Theorem~\ref{thm:sufficiency} need not hold at CLT order under Pareto tails with $\alpha\in(2,3)$.
 \end{remark}
 
 
@@ -423,6 +427,7 @@ We next treat lattice outcomes, where periodicity requires a separate correction
 When outcomes are lattice-valued (e.g., Bernoulli), the randomization distribution of $\hat\tau$ is itself lattice.
 Studentized Edgeworth expansions then acquire a \emph{periodic term} and naïve Cornish--Fisher inversions no longer
 deliver $O(\mN^{-1})$ coverage errors without an explicit continuity adjustment.
+In particular, when the periodic term is nonvanishing (Remark~\ref{rem:lattice_nonvanish}), generic second-order validity fails without jittering.
 This is a hostile discrete setting; the continuity correction demonstrates that the experiment-theoretic conclusions
 persist even under lattice effects.
 
@@ -481,7 +486,7 @@ Appendix~\ref{app:lattice}), so the scaling assumption in Theorem~\ref{thm:latti
 \begin{remark}[Nonvanishing periodic term for Bernoulli outcomes]\label{rem:lattice_nonvanish}
 For Bernoulli outcomes with success fraction $q\neq 1/2$, the lattice periodic term in~\eqref{eq:lattice-edgeworth} is generically nonvanishing. To avoid degenerate cancellations, we assume a nonvanishing subsequence on which $\sup_x|\Pi_N(x)|$ is bounded away from zero.
 \end{remark}
-We now turn to experiment equivalence and asymptotic sufficiency.
+We now turn to experiment equivalence and asymptotic sufficiency. This section delivers the paper's spine—experiment equivalence and reduced-information sufficiency—while the preceding sections build the higher-order machinery and extensions.
 
 \section{Experiment equivalence and asymptotic sufficiency}\label{sec:sufficiency}
 
@@ -503,6 +508,10 @@ a Gaussian Hájek projection with matched first two moments; see Appendix~\ref{a
 Appendix~\ref{app:suff} gives a proof-complete sufficiency/equivalence statement with explicit deficiency bounds
 as Theorem~\ref{thm:asymp-suff-proof}.
 
+\begin{remark}[CLT vs.\ experiment equivalence]
+A CLT for $(\hat\tau,\hat V)$ describes the marginal limit of a statistic. Experiment equivalence is stronger: it supplies Markov kernels that transfer risks for bounded-loss decisions between the randomization experiment and a Gaussian shift experiment. Thus the sufficiency/``forced geometry'' conclusions are experiment-level, not a restatement of asymptotic normality.
+\end{remark}
+
 \begin{proposition}[Rate-optimality of experiment equivalence]\label{prop:rate_opt}
 Assume the conditions of Theorem~\ref{thm:edgeworth}. If
 \[
@@ -523,6 +532,7 @@ then there exists $c'>0$ such that
 Consequently, whenever an upper bound $\Delta(\mathcal E_N,\mathcal G_N)\le C\,\mN^{-1/2}$ holds, the generic case is
 rate-optimal, and in the cancellation regime the optimal rate improves to $\mN^{-1}$.
 \end{proposition}
+The non-vanishing condition on $P_1$ holds whenever the standardized third-cumulant term (including the sampling-fraction component) is bounded away from zero, so the lower bound is generic.
 
 \begin{proof}
 Let $\mathcal E_N^{S}$ and $\mathcal G_N^{S}$ denote the experiments induced by $S_N$ and a standard normal $S$,
@@ -1048,7 +1058,9 @@ and define the synthetic potential outcomes $\tilde Y_i(1)=\tilde Y_i^{(0)}+\til
 Given these synthetic outcomes, draw a CRA assignment $W$ to generate synthetic observed data. By construction, the induced studentized
 statistic $\tilde S_N$ has the same first two moments as $S_N$ and satisfies the same uniform Edgeworth expansion as in
 Theorem~\ref{thm:edgeworth}; thus $\|\mathcal L(\tilde S_N)-\mathcal N(0,1)\|_{\mathrm{TV}}=o(1)$ and the likelihood ratios match up to the
-uniform remainder. This yields a reverse kernel $L_N$ with total-variation error $o(1)$.
+uniform remainder. Concretely, the uniform remainder implies a bound on $\sup_x|\Pr(\tilde S_N\le x)-\Phi(x)|$, which controls
+the risk for bounded threshold losses and hence the total-variation deficiency at CLT order. This yields a reverse kernel $L_N$
+with total-variation error $o(1)$.
 The deficiency distance bounds then imply $\Delta(\mathcal E_N^\mathrm{full},\mathcal G_N)\to 0$ and $\Delta(\mathcal E_N^\mathrm{red},\mathcal G_N)\to 0$.
 Therefore $\Delta(\mathcal E_N^\mathrm{full},\mathcal E_N^\mathrm{red})\to 0$.
 
