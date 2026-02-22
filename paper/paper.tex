@@ -755,11 +755,11 @@ We provide a focused stress test to illustrate the sampling-fraction obstruction
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.90\linewidth]{../experiment/repro/plots/rate_grid/run_legacy/figs/rate_grid_tight_sqrt_log.png}
+\includegraphics[width=0.90\linewidth]{../experiment/repro/plots/rate_grid/run_new_seed123/figs/rate_grid_sqrt.png}
 \vspace{0.4em}
-\includegraphics[width=0.90\linewidth]{../experiment/repro/plots/rate_grid/run_legacy/figs/rate_grid_tight_linear_log.png}
+\includegraphics[width=0.90\linewidth]{../experiment/repro/plots/rate_grid/run_new_seed123/figs/rate_grid_linear.png}
 \vspace{0.4em}
-\includegraphics[width=0.62\linewidth]{../experiment/repro/plots/rate_grid/run_legacy/figs/rate_grid_tight_raw_p05_crop.png}
+\includegraphics[width=0.62\linewidth]{../experiment/repro/plots/rate_grid/run_new_seed123/figs/rate_grid_raw_p05.png}
 \caption{Stress-test coverage errors for skewed lognormal outcomes under CRA at $p\in\{0.5,0.9\}$. Top: $\sqrt{N}$-scaled error; middle: $N$-scaled error (both on a log scale to emphasize regime separation). Bottom: raw error at $p=0.5$, showing that differences among methods are near the Monte Carlo noise floor. Shaded bands are Monte Carlo standard errors. Near census ($p=0.9$), the Gaussian and Cornish--Fisher errors align with $O(N^{-1/2})$ scaling, while the calibrated interval reduces error to the simulation noise floor.}
 \label{fig:stress_tests}
 \end{figure}
