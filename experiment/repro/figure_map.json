@@ -1,11 +1,11 @@
 {
   "fig:stress_tests": {
-    "run_id": "run_legacy",
+    "run_id": "run_new_seed123",
     "description": "Stress-test coverage errors for skewed lognormal outcomes.",
     "files": [
-      "plots/rate_grid/run_legacy/figs/rate_grid_tight_sqrt_log.png",
-      "plots/rate_grid/run_legacy/figs/rate_grid_tight_linear_log.png",
-      "plots/rate_grid/run_legacy/figs/rate_grid_tight_raw_p05_crop.png"
+      "plots/rate_grid/run_new_seed123/figs/rate_grid_sqrt.png",
+      "plots/rate_grid/run_new_seed123/figs/rate_grid_linear.png",
+      "plots/rate_grid/run_new_seed123/figs/rate_grid_raw_p05.png"
     ]
   }
 }
