@@ -121,16 +121,17 @@ def write_manifest(
     manifest_path: str,
     *,
     run_id: str,
-    config_path: str,
+    config_path: Optional[str],
     base_seed: int,
     spawn_keys: Optional[list[Any]],
     command: list[str],
     repo_root: str,
 ) -> None:
+    config_hash = compute_config_hash(config_path) if config_path else None
     payload: Dict[str, Any] = {
         "run_id": run_id,
         "config_path": config_path,
-        "config_hash": compute_config_hash(config_path),
+        "config_hash": config_hash,
         "base_seed": base_seed,
         "spawn_keys": spawn_keys,
         "command": command,

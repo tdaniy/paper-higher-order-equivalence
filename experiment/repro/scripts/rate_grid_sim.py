@@ -20,6 +20,7 @@ import sys
 base_dir = os.path.dirname(__file__)
 sys.path.insert(0, base_dir)
 import sampling_fraction_sim as sim
+from repro_utils import build_run_paths, compute_run_id, ensure_dir, write_manifest
 
 
 def parse_args() -> argparse.Namespace:
@@ -46,50 +47,40 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--delta", type=float, default=0.5, help="constant treatment effect")
     parser.add_argument("--lognormal-mu", type=float, default=0.0, help="lognormal mean (on log scale)")
     parser.add_argument("--lognormal-sigma", type=float, default=1.2, help="lognormal sigma (on log scale)")
-    parser.add_argument("--run-id", type=str, help="optional run ID for output organization")
+    parser.add_argument("--config", type=str, help="optional config file for run ID hashing")
+    parser.add_argument("--run-id", type=str, help="optional run ID (overrides config-based hash)")
     outputs_dir = os.path.abspath(os.path.join(base_dir, "..", "outputs", "rate_grid"))
     plots_dir = os.path.abspath(os.path.join(base_dir, "..", "plots", "rate_grid"))
-    parser.add_argument(
-        "--csv",
-        type=str,
-        default=os.path.join(outputs_dir, "rate_grid.csv"),
-    )
-    parser.add_argument(
-        "--plot-sqrt",
-        type=str,
-        default=os.path.join(plots_dir, "rate_grid_sqrt.png"),
-    )
-    parser.add_argument(
-        "--plot-linear",
-        type=str,
-        default=os.path.join(plots_dir, "rate_grid_linear.png"),
-    )
+    parser.add_argument("--csv", type=str, help="output CSV path")
+    parser.add_argument("--plot-sqrt", type=str, help="output path for sqrt-scaled plot")
+    parser.add_argument("--plot-linear", type=str, help="output path for linear-scaled plot")
     parser.add_argument("--logy", action="store_true", help="log-scale y-axis for plots")
     parser.add_argument("--ylim", type=float, nargs=2, help="y-axis limits, e.g. --ylim -2 2")
     parser.add_argument("--slope-k", type=int, default=6, help="number of largest-N points for slope fit")
-    parser.add_argument(
-        "--slope-csv",
-        type=str,
-        default=os.path.join(outputs_dir, "rate_grid_slopes.csv"),
-    )
+    parser.add_argument("--slope-csv", type=str, help="output path for slopes CSV")
     parser.add_argument("--plot-only", action="store_true", help="skip simulation and replot from CSV")
     parser.add_argument("--input-csv", type=str, help="CSV to read when --plot-only is set")
     parser.add_argument("--plot-raw-p05", type=str, help="output path for raw error p=0.5 plot")
     parser.add_argument("--jobs", type=int, default=0, help="number of parallel workers (0=auto)")
     args = parser.parse_args()
-    if args.run_id:
-        outputs_dir = os.path.join(outputs_dir, args.run_id, "tables")
-        plots_dir = os.path.join(plots_dir, args.run_id, "figs")
-        if args.csv.endswith("rate_grid.csv"):
-            args.csv = os.path.join(outputs_dir, "rate_grid.csv")
-        if args.plot_sqrt.endswith("rate_grid_sqrt.png"):
-            args.plot_sqrt = os.path.join(plots_dir, "rate_grid_sqrt.png")
-        if args.plot_linear.endswith("rate_grid_linear.png"):
-            args.plot_linear = os.path.join(plots_dir, "rate_grid_linear.png")
-        if args.slope_csv.endswith("rate_grid_slopes.csv"):
-            args.slope_csv = os.path.join(outputs_dir, "rate_grid_slopes.csv")
-        if args.plot_raw_p05 is None:
-            args.plot_raw_p05 = os.path.join(plots_dir, "rate_grid_raw_p05.png")
+    run_id = args.run_id
+    if run_id is None and args.config:
+        run_id = compute_run_id(args.config, args.seed)
+    if run_id is None:
+        run_id = f"run_manual_seed{args.seed}"
+    args.run_id = run_id
+    outputs_dir = os.path.join(outputs_dir, run_id, "tables")
+    plots_dir = os.path.join(plots_dir, run_id, "figs")
+    if not args.csv:
+        args.csv = os.path.join(outputs_dir, "rate_grid.csv")
+    if not args.plot_sqrt:
+        args.plot_sqrt = os.path.join(plots_dir, "rate_grid_sqrt.png")
+    if not args.plot_linear:
+        args.plot_linear = os.path.join(plots_dir, "rate_grid_linear.png")
+    if not args.slope_csv:
+        args.slope_csv = os.path.join(outputs_dir, "rate_grid_slopes.csv")
+    if args.plot_raw_p05 is None:
+        args.plot_raw_p05 = os.path.join(plots_dir, "rate_grid_raw_p05.png")
     return args
 
 
@@ -119,11 +110,25 @@ def read_csv(path: str) -> List[dict]:
     return rows
 
 
+def append_summary(path: str, row: List[str]) -> None:
+    ensure_dir(os.path.dirname(path))
+    exists = os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not exists:
+            writer.writerow(
+                ["run_id", "config", "base_seed", "outputs_path", "plots_path", "logs_path", "notes"]
+            )
+        writer.writerow(row)
+
+
 def plot_scaled(rows: List[dict], path: str, scale: str, logy: bool, ylim: List[float] | None) -> None:
     try:
         import os
         cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".mpl_cache"))
         os.environ.setdefault("MPLCONFIGDIR", cache_dir)
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except Exception:
         return
@@ -173,6 +178,8 @@ def plot_raw_p05(rows: List[dict], path: str) -> None:
         import os
         cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".mpl_cache"))
         os.environ.setdefault("MPLCONFIGDIR", cache_dir)
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except Exception:
         return
@@ -274,6 +281,46 @@ def _simulate_one_n(args: Tuple[int, int, int, int, List[float], float, int, flo
 
 def main() -> None:
     args = parse_args()
+    base_dir = os.path.dirname(__file__)
+    repro_root = os.path.abspath(os.path.join(base_dir, ".."))
+    paths = build_run_paths(repro_root, "rate_grid", args.run_id)
+    ensure_dir(paths.outputs_dir)
+    ensure_dir(paths.plots_dir)
+    ensure_dir(paths.logs_dir)
+    spawn_keys = []
+    for n in args.n_grid:
+        for p in args.p_grid:
+            tag = sim.scenario_tag(
+                n=n,
+                p=float(p),
+                b=args.b,
+                r_skew=args.r_skew,
+                r_cov=args.r_cov,
+                alpha=args.alpha,
+                delta=args.delta,
+                mu=args.lognormal_mu,
+                sigma=args.lognormal_sigma,
+            )
+            spawn_keys.append({"N": int(n), "p": float(p), "hash": sim.stable_hash_int(tag)})
+    write_manifest(
+        os.path.join(paths.logs_dir, "manifest.json"),
+        run_id=args.run_id,
+        config_path=args.config,
+        base_seed=args.seed,
+        spawn_keys=spawn_keys,
+        command=sys.argv,
+        repo_root=os.path.abspath(os.path.join(repro_root, "..")),
+    )
+    for target_dir in (os.path.dirname(paths.outputs_dir), os.path.dirname(paths.plots_dir)):
+        write_manifest(
+            os.path.join(target_dir, "manifest.json"),
+            run_id=args.run_id,
+            config_path=args.config,
+            base_seed=args.seed,
+            spawn_keys=spawn_keys,
+            command=sys.argv,
+            repo_root=os.path.abspath(os.path.join(repro_root, "..")),
+        )
     start = time.time()
     rows: List[dict] = []
 
@@ -304,7 +351,7 @@ def main() -> None:
                     r_cov=args.r_cov,
                     p_grid=args.p_grid,
                     alpha=args.alpha,
-                    seed=args.seed + n,
+                    seed=args.seed,
                     delta=args.delta,
                     mu=args.lognormal_mu,
                     sigma=args.lognormal_sigma,
@@ -330,7 +377,7 @@ def main() -> None:
                         args.r_cov,
                         list(args.p_grid),
                         args.alpha,
-                        args.seed + n,
+                        args.seed,
                         args.delta,
                         args.lognormal_mu,
                         args.lognormal_sigma,
@@ -361,6 +408,19 @@ def main() -> None:
         rows, scale="linear", k=args.slope_k
     )
     write_csv(args.slope_csv, slope_rows)
+    summary_path = os.path.join(repro_root, "outputs", "rate_grid", "summary.csv")
+    append_summary(
+        summary_path,
+        [
+            args.run_id,
+            os.path.relpath(args.config, repro_root) if args.config else "",
+            str(args.seed),
+            os.path.relpath(os.path.dirname(paths.outputs_dir), repro_root),
+            os.path.relpath(os.path.dirname(paths.plots_dir), repro_root),
+            os.path.relpath(paths.logs_dir, repro_root),
+            "completed",
+        ],
+    )
     elapsed = time.time() - start
     print(f"Elapsed: {elapsed:.1f}s")
 
