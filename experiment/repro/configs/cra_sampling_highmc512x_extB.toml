@@ -1,0 +1,14 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[cra_sampling]
+n_grid = [200, 400, 800, 1200, 1600, 2000, 2400, 3200]
+f_grid = [0.20, 0.35, 0.50, 0.65, 0.80, 0.90]
+near_census_c = [1, 2]
+B = 1600
+r_skew = 12800
+r_cov = 25600
+mu = 0.0
+sigma = 1.2
+delta = 0.5

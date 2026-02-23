@@ -1,0 +1,4 @@
+module,design,outcome,method,scale,slope,slope_low,slope_high,n_points
+parity,parity_holds,continuous,calibrated,error,nan,nan,nan,1
+parity,parity_fails,continuous,calibrated,error,nan,nan,nan,1
+cra_sampling,f=0.5,continuous,calibrated,error,nan,nan,nan,1

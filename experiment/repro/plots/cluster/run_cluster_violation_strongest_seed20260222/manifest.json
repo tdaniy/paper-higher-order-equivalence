@@ -1,0 +1,82 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "experiment/repro/scripts/run_cluster.py",
+    "--config",
+    "experiment/repro/configs/cluster_violation_strongest.toml",
+    "--run-id",
+    "run_cluster_violation_strongest_seed20260222"
+  ],
+  "config_hash": "a78efb2b033c2aea5915690b8daf17bece3c17ecadb477502abca1ec50088883",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/cluster_violation_strongest.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_cluster_violation_strongest_seed20260222",
+  "spawn_keys": [
+    {
+      "N": 400,
+      "hash": 10462423275818605412,
+      "regime": "regime_a"
+    },
+    {
+      "N": 400,
+      "hash": 11418024980602305887,
+      "regime": "regime_b"
+    },
+    {
+      "N": 400,
+      "hash": 3884830212122662948,
+      "regime": "violation"
+    },
+    {
+      "N": 800,
+      "hash": 4391748033198331948,
+      "regime": "regime_a"
+    },
+    {
+      "N": 800,
+      "hash": 6761597437401643576,
+      "regime": "regime_b"
+    },
+    {
+      "N": 800,
+      "hash": 12218197586861471305,
+      "regime": "violation"
+    },
+    {
+      "N": 1600,
+      "hash": 11293585174839820364,
+      "regime": "regime_a"
+    },
+    {
+      "N": 1600,
+      "hash": 17731399018774172258,
+      "regime": "regime_b"
+    },
+    {
+      "N": 1600,
+      "hash": 3916090190503318872,
+      "regime": "violation"
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": "8",
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.6.3",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

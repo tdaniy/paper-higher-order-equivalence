@@ -1,0 +1,17 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[cluster]
+n_grid = [400, 800, 1600]
+B = 80
+r_skew = 400
+r_cov = 600
+f = 0.5
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+p0 = 0.20
+p1 = 0.30
+violation_share = 0.80
+violation_force_big_cluster = true

@@ -1,0 +1,10 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[parity]
+n_grid = [200]
+B = 2
+r_skew = 5
+r_cov = 5
+delta = 0.5

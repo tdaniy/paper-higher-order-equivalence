@@ -1,0 +1,77 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[cra_sampling]
+n_grid = [200, 400, 800, 1200, 1600]
+f_grid = [0.20, 0.35, 0.50, 0.65, 0.80, 0.90]
+near_census_c = [1, 2]
+B = 50
+r_skew = 400
+r_cov = 400
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+
+[parity]
+n_grid = [200, 400, 800, 1200]
+B = 40
+r_skew = 400
+r_cov = 400
+delta = 0.5
+
+[lattice]
+n_grid = [200, 400, 800]
+B = 40
+r_skew = 400
+r_cov = 1000
+p0 = 0.20
+p1 = 0.35
+
+[stratified]
+n_grid = [300, 600, 1200]
+f_grid = [0.4, 0.6]
+B = 40
+r_skew = 400
+r_cov = 400
+strata_weights = [0.3, 0.7]
+strata_sigma = [0.6, 1.4]
+mu = 0.0
+delta = 0.5
+p0 = 0.20
+p1 = 0.30
+
+[cluster]
+n_grid = [400, 800, 1600]
+B = 40
+r_skew = 300
+r_cov = 300
+f = 0.5
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+p0 = 0.20
+p1 = 0.30
+
+[one_sided]
+n_grid = [200, 400, 800, 1200]
+B = 40
+r_skew = 400
+r_cov = 400
+delta = 0.5
+
+[objective_bayes]
+n_grid = [200, 400, 800]
+B = 30
+r_cov = 200
+S = 2000
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+strata_weights = [0.3, 0.7]
+strata_sigma = [0.6, 1.4]
+
+[fpc]
+pairs = [[200, 40], [200, 120], [500, 100], [500, 300]]
+B = 200
+

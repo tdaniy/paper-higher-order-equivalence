@@ -1,0 +1,85 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "experiment/repro/scripts/run_parity.py",
+    "--config",
+    "experiment/repro/configs/parity_highmc32x.toml",
+    "--run-id",
+    "run_parity_highmc32x_seed20260222"
+  ],
+  "config_hash": "0caeeb9f6065a8df62d03db52c706e56439c4f30533918ff29cb6090517fdbe4",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/parity_highmc32x.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_parity_highmc32x_seed20260222",
+  "spawn_keys": [
+    {
+      "N": 200,
+      "f": 0.5,
+      "hash": 1165689154938804870,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 400,
+      "f": 0.5,
+      "hash": 10584266675767291367,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 800,
+      "f": 0.5,
+      "hash": 8795312756179177975,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 1200,
+      "f": 0.5,
+      "hash": 5115074897954350946,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 200,
+      "f": 0.7,
+      "hash": 1518262768282737004,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 400,
+      "f": 0.7,
+      "hash": 8454684639645540349,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 800,
+      "f": 0.7,
+      "hash": 8308655501096787397,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 1200,
+      "f": 0.7,
+      "hash": 14757081666063764813,
+      "regime": "parity_fails"
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": "8",
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.6.3",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

@@ -1,0 +1,4 @@
+module,design,outcome,method,scale,slope,slope_low,slope_high,n_points
+cra_sampling,f=0.5,continuous,calibrated,error,1.944629510708626,0.7813800031609164,0.8539860873204793,4
+cra_sampling,near-census c=1,continuous,calibrated,error,-0.8243792548964245,-0.17942245362256487,0.3586141290243423,4
+cra_sampling,near-census c=2,continuous,calibrated,error,-1.4707484089858476,-0.42016975017238656,1.8310099482323068,4

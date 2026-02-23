@@ -1,0 +1,67 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "experiment/repro/scripts/run_sim.py",
+    "--config",
+    "experiment/repro/configs/approved.toml",
+    "--run-id",
+    "run_approved_seed20260222_hash8d9efc1b_v2"
+  ],
+  "config_hash": "8d9efc1b2f353ad7c396b1ac6105d7032a82e1d696eeddcc47c6bd029f3bbb55",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/approved.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_approved_seed20260222_hash8d9efc1b_v2",
+  "spawn_keys": [
+    {
+      "N": 200,
+      "design": "CRA",
+      "hash": 3362350769660438434
+    },
+    {
+      "N": 400,
+      "design": "CRA",
+      "hash": 15229986699317408457
+    },
+    {
+      "N": 800,
+      "design": "CRA",
+      "hash": 16761726901130505527
+    },
+    {
+      "N": 200,
+      "design": "stratified",
+      "hash": 8091267880472221161
+    },
+    {
+      "N": 400,
+      "design": "stratified",
+      "hash": 1610524202927087435
+    },
+    {
+      "N": 800,
+      "design": "stratified",
+      "hash": 4151457536004463870
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": null,
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.6.3",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

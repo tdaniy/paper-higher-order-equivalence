@@ -1,0 +1,177 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "scripts/run_parity.py",
+    "--config",
+    "configs/parity_holds_hard_256x_extB.toml",
+    "--run-id",
+    "run_parity_holds_hard_256x_extB_seed20260222"
+  ],
+  "config_hash": "66db809c017fef7173bed1d9c2603c2fa3116932355f583db898158bb9d11bdd",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/parity_holds_hard_256x_extB.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_parity_holds_hard_256x_extB_seed20260222",
+  "spawn_keys": [
+    {
+      "N": 200,
+      "f": 0.5,
+      "hash": 10835797121573883119,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 400,
+      "f": 0.5,
+      "hash": 10968239834767578722,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 800,
+      "f": 0.5,
+      "hash": 2901802327289706986,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 1200,
+      "f": 0.5,
+      "hash": 14979527837484558541,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 1600,
+      "f": 0.5,
+      "hash": 12519045592945635258,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 2000,
+      "f": 0.5,
+      "hash": 331041471938448721,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 2400,
+      "f": 0.5,
+      "hash": 5270479206133194649,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_holds",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 200,
+      "f": 0.7,
+      "hash": 7766547460089889155,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 400,
+      "f": 0.7,
+      "hash": 10250721423120684421,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 800,
+      "f": 0.7,
+      "hash": 2782602802806204967,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 1200,
+      "f": 0.7,
+      "hash": 12666522195721230180,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 1600,
+      "f": 0.7,
+      "hash": 122304399781718992,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 2000,
+      "f": 0.7,
+      "hash": 1179686038644213555,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    },
+    {
+      "N": 2400,
+      "f": 0.7,
+      "hash": 13555164655049926624,
+      "mix_scale": 5.0,
+      "mix_weight": 0.1,
+      "regime": "parity_fails",
+      "symmetric_dgp": "t",
+      "t_df": 3.0
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": null,
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.8.4",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

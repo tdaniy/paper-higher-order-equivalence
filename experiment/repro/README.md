@@ -56,6 +56,13 @@ Outputs will be written to `outputs/` and `plots/` (one subfolder per run).
   - identical Python + NumPy versions (as locked in `uv.lock`)
   - identical code + config
   - identical seed
+Parallelism is opt-in. Set `REPRO_WORKERS=<n>` to parallelize outer-loop populations using `multiprocessing` with spawn semantics; leave unset for identical single-process outputs.
+
+Progress output is summarized at module start and then at most once per minute, for example:
+`[module] START YYYY-mm-dd HH:MM:SS | tasks=...`,
+`[module] progress k/T | current=... | elapsed=... | eta=...`,
+`[module] done <task> | i/total | task_time=... | tasks=k/T`,
+`[module] DONE YYYY-mm-dd HH:MM:SS | total_time=...`.
 
 ## Provenance Logging
 Each run records:
@@ -78,3 +85,6 @@ Each run directory must include a `manifest.json` (or `run.json`) recording conf
 ## Notes on Reproducibility
 Changing Python or NumPy versions may change random streams and numerical results.
 This is why `.python-version` and `uv.lock` are required for exact reproduction.
+
+## Claim Status (Recent Runs)
+- C5 cluster leverage: supported under a strong violation regime (fixed large cluster share with forced treatment). See `configs/cluster_violation_strongest.toml` and the run `run_cluster_violation_strongest_seed20260222`.

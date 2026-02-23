@@ -1,0 +1,23 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[parity]
+# Extended N grid for better slope stability
+n_grid = [200, 400, 800, 1200, 1600, 2000, 2400]
+# 256x MC settings
+B = 640
+r_skew = 6400
+r_cov = 12800
+# Effect size
+
+delta = 1.0
+# Symmetric spike-slab DGP to amplify second-order signal while preserving parity
+symmetric_dgp = "spike"
+spike_prob = 0.02
+spike_scale = 20.0
+spike_standardize = true
+# (Optional) parameters for other symmetric modes
+mix_weight = 0.10
+mix_scale = 5.0
+t_df = 3.0

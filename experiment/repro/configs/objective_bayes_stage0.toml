@@ -1,0 +1,76 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[cra_sampling]
+n_grid = [200]
+f_grid = [0.5]
+near_census_c = []
+B = 1
+r_skew = 10
+r_cov = 10
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+
+[parity]
+n_grid = [200]
+B = 1
+r_skew = 10
+r_cov = 10
+delta = 0.5
+
+[lattice]
+n_grid = [200]
+B = 1
+r_skew = 10
+r_cov = 10
+p0 = 0.20
+p1 = 0.35
+
+[stratified]
+n_grid = [200]
+f_grid = [0.5]
+B = 1
+r_skew = 10
+r_cov = 10
+strata_weights = [0.5, 0.5]
+strata_sigma = [1.0, 1.0]
+mu = 0.0
+delta = 0.5
+p0 = 0.20
+p1 = 0.35
+
+[cluster]
+n_grid = [200]
+B = 1
+r_skew = 10
+r_cov = 10
+f = 0.5
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+p0 = 0.20
+p1 = 0.35
+
+[one_sided]
+n_grid = [200]
+B = 1
+r_skew = 10
+r_cov = 10
+delta = 0.5
+
+[objective_bayes]
+n_grid = [200]
+B = 50
+r_cov = 500
+S = 500
+mu = 0.0
+sigma = 1.2
+delta = 0.5
+strata_weights = [0.5, 0.5]
+strata_sigma = [1.0, 1.0]
+
+[fpc]
+pairs = [[200, 100]]
+B = 2

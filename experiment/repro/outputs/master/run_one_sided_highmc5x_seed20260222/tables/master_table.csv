@@ -1,0 +1,13 @@
+module,design,outcome,method,N,m_N,f,B,R,S,coverage,mcse,avg_length,skew,kurtosis,periodicity,lambda_N,variance_ratio,endpoint_diff
+one_sided,CRA,continuous,gaussian_one_sided,200,200,0.5,1000,4000,,0.94923525,0.00010975847365629398,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,200,200,0.5,1000,4000,,0.94903775,0.00010996033270563695,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,200,200,0.5,1000,4000,,0.94991425,0.00010906095502852698,inf,,,,,,
+one_sided,CRA,continuous,gaussian_one_sided,400,400,0.5,1000,4000,,0.949694,0.00010928781538213667,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,400,400,0.5,1000,4000,,0.9495395,0.00010944660563460844,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,400,400,0.5,1000,4000,,0.95014825,0.00010881929174316644,inf,,,,,,
+one_sided,CRA,continuous,gaussian_one_sided,800,800,0.5,1000,4000,,0.95003,0.00010894149702936889,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,800,800,0.5,1000,4000,,0.94996125,0.00010901246889511942,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,800,800,0.5,1000,4000,,0.9507065,0.0001082400698190716,inf,,,,,,
+one_sided,CRA,continuous,gaussian_one_sided,1200,1200,0.5,1000,4000,,0.9498055,0.0001091730417385057,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,1200,1200,0.5,1000,4000,,0.94972975,0.00010925103199162178,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,1200,1200,0.5,1000,4000,,0.9501945,0.00010877144865467909,inf,,,,,,

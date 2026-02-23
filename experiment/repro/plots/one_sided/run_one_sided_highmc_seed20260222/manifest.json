@@ -1,0 +1,57 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "experiment/repro/scripts/run_one_sided.py",
+    "--config",
+    "experiment/repro/configs/one_sided_highmc.toml",
+    "--run-id",
+    "run_one_sided_highmc_seed20260222"
+  ],
+  "config_hash": "88b48c948fa8ea32a6d295ffb8bdfcb831e1b98e0869ba1e692b122f79ddd180",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/one_sided_highmc.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_one_sided_highmc_seed20260222",
+  "spawn_keys": [
+    {
+      "N": 200,
+      "f": 0.5,
+      "hash": 8368576491441031653
+    },
+    {
+      "N": 400,
+      "f": 0.5,
+      "hash": 6173363334065034427
+    },
+    {
+      "N": 800,
+      "f": 0.5,
+      "hash": 4756109868714297851
+    },
+    {
+      "N": 1200,
+      "f": 0.5,
+      "hash": 12474761857981682482
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": "8",
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.6.3",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

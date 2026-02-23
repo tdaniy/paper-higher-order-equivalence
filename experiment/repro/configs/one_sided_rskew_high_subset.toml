@@ -1,0 +1,10 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[one_sided]
+n_grid = [400, 800]
+B = 200
+r_skew = 4000
+r_cov = 2000
+delta = 0.5

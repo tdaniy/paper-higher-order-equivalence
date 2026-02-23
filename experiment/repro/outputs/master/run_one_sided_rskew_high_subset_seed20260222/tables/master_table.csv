@@ -1,0 +1,7 @@
+module,design,outcome,method,N,m_N,f,B,R,S,coverage,mcse,avg_length,skew,kurtosis,periodicity,lambda_N,variance_ratio,endpoint_diff
+one_sided,CRA,continuous,gaussian_one_sided,400,400,0.5,200,2000,,0.9491825,0.00034725740342629835,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,400,400,0.5,200,2000,,0.949105,0.0003475079098919909,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,400,400,0.5,200,2000,,0.9493825,0.0003466098984945106,inf,,,,,,
+one_sided,CRA,continuous,gaussian_one_sided,800,800,0.5,200,2000,,0.9496,0.00034590403293399165,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,800,800,0.5,200,2000,,0.9494375,0.00034643157186430755,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,800,800,0.5,200,2000,,0.9494425,0.0003464153547179672,inf,,,,,,

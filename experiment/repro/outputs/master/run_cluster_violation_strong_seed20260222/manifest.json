@@ -1,0 +1,38 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "experiment/repro/scripts/make_plots.py",
+    "--config",
+    "experiment/repro/configs/cluster_violation_strong.toml",
+    "--seed",
+    "20260222",
+    "--run-id",
+    "run_cluster_violation_strong_seed20260222"
+  ],
+  "config_hash": "f2c4fe958fc1d90a8671352cebb57ef25dbe756d09b9f3f49bdac1d629c09998",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/cluster_violation_strong.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_cluster_violation_strong_seed20260222",
+  "spawn_keys": null,
+  "thread_env": {
+    "MKL_NUM_THREADS": null,
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.6.3",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

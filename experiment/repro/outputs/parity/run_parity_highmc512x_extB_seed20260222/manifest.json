@@ -1,0 +1,121 @@
+{
+  "base_seed": 20260222,
+  "command": [
+    "scripts/run_parity.py",
+    "--config",
+    "configs/parity_highmc512x_extB.toml",
+    "--run-id",
+    "run_parity_highmc512x_extB_seed20260222"
+  ],
+  "config_hash": "840c2719197dd1851f9c976d4262e048a3fb143929e2ecc7f004f7997817f4d1",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/parity_highmc512x_extB.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_parity_highmc512x_extB_seed20260222",
+  "spawn_keys": [
+    {
+      "N": 200,
+      "f": 0.5,
+      "hash": 6698437368829221632,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 400,
+      "f": 0.5,
+      "hash": 12149837045516126380,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 800,
+      "f": 0.5,
+      "hash": 11857995909871432494,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 1200,
+      "f": 0.5,
+      "hash": 6129608867949329014,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 1600,
+      "f": 0.5,
+      "hash": 12866374924502651067,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 2000,
+      "f": 0.5,
+      "hash": 14000064373572525331,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 2400,
+      "f": 0.5,
+      "hash": 1370070002092703690,
+      "regime": "parity_holds"
+    },
+    {
+      "N": 200,
+      "f": 0.7,
+      "hash": 14514168281817973823,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 400,
+      "f": 0.7,
+      "hash": 7906900267284993368,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 800,
+      "f": 0.7,
+      "hash": 10564337582034952080,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 1200,
+      "f": 0.7,
+      "hash": 11503104004552159817,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 1600,
+      "f": 0.7,
+      "hash": 15879091164166180680,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 2000,
+      "f": 0.7,
+      "hash": 16618581329492047015,
+      "regime": "parity_fails"
+    },
+    {
+      "N": 2400,
+      "f": 0.7,
+      "hash": 8085709594802878932,
+      "regime": "parity_fails"
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": null,
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.8.4",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

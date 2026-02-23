@@ -1,0 +1,4 @@
+module,design,outcome,method,N,m_N,f,B,R,S,coverage,mcse,avg_length,skew,kurtosis,periodicity,lambda_N,variance_ratio,endpoint_diff
+one_sided,CRA,continuous,gaussian_one_sided,800,800,0.5,200,10000,,0.9497005,0.00015454685422186702,inf,,,,,,
+one_sided,CRA,continuous,cornish_fisher_one_sided,800,800,0.5,200,10000,,0.949306,0.0001551194996833087,inf,,,,,,
+one_sided,CRA,continuous,calibrated_one_sided,800,800,0.5,200,10000,,0.949832,0.00015435538827005682,inf,,,,,,
