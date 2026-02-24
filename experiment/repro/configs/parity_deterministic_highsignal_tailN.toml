@@ -1,0 +1,32 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[parity_deterministic]
+# Tail-focused grid with a few anchors
+n_grid = [800, 1600, 2400, 3200, 4000, 4800, 5600, 6400]
+
+# Assignment Monte Carlo (single fixed population per N)
+r_skew = 10000
+r_cov = 50000
+
+# Effect size
+delta = 1.0
+
+# Parity-holds: symmetric high-kurtosis spike DGP
+spike_prob = 0.005
+spike_scale = 80.0
+spike_standardize = true
+base_scale = 1.0
+
+# Parity-fails: skewed deterministic lognormal quantiles
+parity_fails_lognormal_mu = 0.0
+parity_fails_lognormal_sigma = 1.8
+parity_fails_standardize = true
+
+# Assignment fractions (use 0.5 for antithetic pairing)
+parity_holds_f = 0.5
+parity_fails_f = 0.5
+
+# Variance reduction
+antithetic_assignments = true

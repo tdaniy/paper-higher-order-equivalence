@@ -1,0 +1,30 @@
+[meta]
+base_seed = 20260223
+alpha = 0.05
+
+[parity_deterministic]
+# Periodicity diagnostic grid: 3000..3800 by 50
+n_grid = [3000, 3050, 3100, 3150, 3200, 3250, 3300, 3350, 3400, 3450, 3500, 3550, 3600, 3650, 3700, 3750, 3800]
+
+# MC: keep high to avoid noise floor
+r_skew = 20000
+r_cov = 200000
+
+# Effect size
+delta = 1.0
+
+# Parity-holds: very high-kurtosis symmetric spike
+spike_prob = 0.002
+spike_scale = 200.0
+spike_standardize = true
+base_scale = 1.0
+
+# Parity-fails: strong skew + far from 0.5
+parity_fails_lognormal_mu = 0.0
+parity_fails_lognormal_sigma = 2.4
+parity_fails_standardize = true
+
+parity_holds_f = 0.5
+parity_fails_f = 0.8
+
+antithetic_assignments = true

@@ -33,6 +33,8 @@ uv run python scripts/determinism_check.py --dir-a <pathA> --dir-b <pathB>
 ## Notes
 Exact reproducibility requires identical Python and NumPy versions and the same seed configuration.
 Module runs print periodic progress lines (once per minute) showing global task progress and ETA.
+For long runs, the runner now checkpoints after each module and skips missing config sections instead of failing.
+Module-only runners (e.g., `scripts/run_cra_sampling_only.py`) are available to avoid unrelated-module crashes.
 
 ## C5 Strong Violation Confirmation
 The cluster leverage failure mode is supported when leverage is fixed at a large share and the largest cluster is always treated.
@@ -165,6 +167,179 @@ Note: the parity scaling plot (`parity_scaling.png`, sqrt(N)·|err|) would espec
 Additional note: a few more large-N points (e.g., 3–4 additional grid values) would improve trend diagnostics across the parity plots, especially for tail-slope confirmation.
 
 Pending item: the CRA 512× extended run (`run_cra_sampling_highmc512x_extB_seed20260222`) remains on the agenda and should be executed after the parity tail extension to complete the high-MC rate diagnostics.
+
+## CRA 512× Tail-Only Extension (2026-02-24)
+Goal: reduce continuous heat exposure while extending the CRA tail window (N=3600–4800).
+
+Config:
+- `configs/cra_sampling_highmc512x_extB_tail.toml`
+
+Run attempt:
+- `run_cra_sampling_highmc512x_extB_tail_seed20260222_hash680b2fef`
+- **CRA tasks completed (32/32), but the process crashed afterward** due to a missing `parity` section in the config (`KeyError: 'parity'`).
+- Result: **no `outputs/master/<run_id>/tables/master_table.csv`** was written, so plots could not be generated.
+
+### Safeguards Added (Post‑mortem)
+To prevent long-run data loss:
+1. **Module guard + checkpointing** in `scripts/run_sim.py`:
+   - Missing config sections are skipped (no hard failure).
+   - The master table is written after each module and on exceptions.
+2. **CRA-only runner**: `scripts/run_cra_sampling_only.py`
+   - Runs only the CRA module and writes the master table directly.
+
+Recommended rerun (safe):
+```
+REPRO_WORKERS=8 UV_CACHE_DIR=/tmp/uv-cache MPLCONFIGDIR=/tmp/mpl-cache \
+  uv run python scripts/run_cra_sampling_only.py \
+  --config configs/cra_sampling_highmc512x_extB_tail.toml
+```
+
+## Deterministic Parity Experiment (Option 1)
+Decision: reformulate the parity experiment to eliminate outer-loop population noise by fixing a deterministic finite population per N and pushing Monte Carlo effort into assignment randomness. This targets the asymptotic rate claims directly and avoids MCSE-limited tails.
+
+Implementation notes:
+- New deterministic generator (symmetric spike for parity-holds; lognormal quantiles for parity-fails).
+- Optional antithetic assignment pairing at f=0.5 to reduce variance.
+- New runner: `scripts/run_parity_deterministic.py`.
+- New plots support: `make_plots.py` now handles `module=parity_det`.
+
+Proposed config:
+- `configs/parity_deterministic_highsignal_tailN.toml`
+- Tail-focused N grid: 800–6400
+- r_skew=10000, r_cov=50000
+- parity_holds_f=0.5, parity_fails_f=0.5
+- antithetic_assignments=true
+- spike_prob=0.005, spike_scale=80.0 (high-signal symmetric)
+- parity_fails_lognormal_sigma=1.8 (high-skew)
+
+Run command (example):
+```
+REPRO_WORKERS=12 MPLCONFIGDIR=/tmp/mpl-cache UV_CACHE_DIR=/tmp/uv-cache \
+  uv run python scripts/run_parity_deterministic.py \
+  --config configs/parity_deterministic_highsignal_tailN.toml \
+  --run-id run_parity_deterministic_highsignal_tailN_seed20260223
+```
+
+## Deterministic Parity Periodicity Diagnostics (2026-02-23)
+Goal: test whether the non‑monotone tail behavior is a periodic/rounding artifact of the deterministic spike population.
+
+### A. Baseline periodicity check (rounding spikes)
+Config:
+- `configs/parity_deterministic_periodicity_diag_v3.toml`
+- N grid: 3000..3800 by 50
+- r_cov=200000, r_skew=20000
+- spike_prob=0.002, spike_scale=200.0, spike_mode=rounding
+
+Run:
+- `run_parity_deterministic_periodicity_diag_v3_seed20260223_hashb7264c55`
+
+Finding (gaussian method):
+- Parity‑holds error exhibits a **sharp step at N=3500**, flipping from about +0.018–0.019 to about −0.015–0.017.
+- Root cause: `spike_pairs = round((N/2)*spike_prob)` jumps from 3 to 4 at N=3500.
+
+### B. Smooth spike mixture (remove rounding artifact)
+Config:
+- `configs/parity_deterministic_periodicity_diag_v3_smooth.toml`
+- spike_mode = `"smooth"` (fractional spike mass)
+
+Run:
+- `run_parity_deterministic_periodicity_diag_v3_smooth_seed20260223_hash6cedad3c`
+
+Finding (gaussian method):
+- The step at N=3500 disappears.
+- Parity‑holds error **drifts smoothly** and crosses zero around N≈3550; no mod‑100/mod‑200 periodicity.
+
+### C. Randomized spike assignment (same spike_prob/scale)
+Config:
+- `configs/parity_deterministic_periodicity_diag_v3_random.toml`
+- spike_mode = `"randomized"`
+
+Runs (3 seeds):
+- `run_parity_deterministic_periodicity_diag_v3_random_seed20260223_hasha157a417`
+- `run_parity_deterministic_periodicity_diag_v3_random_seed20260224_hasha157a417`
+- `run_parity_deterministic_periodicity_diag_v3_random_seed20260225_hasha157a417`
+
+Finding (gaussian method):
+- Parity‑holds still shows a **downward drift** vs N in every seed.
+  - Per‑seed linear slopes: −4.94e‑05, −2.82e‑05, −2.47e‑05 per N.
+  - Mean slope across seeds: −3.41e‑05 per N.
+  - Errors span roughly +0.049 to −0.019 across the grid (crossing zero).
+- Parity‑fails remains stable with near‑zero slope (~1e‑06 per N), error ≈ −0.039.
+
+Conclusion: the **rounding artifact is real**, but even after removing it (smooth or randomized spikes), the parity‑holds drift persists. The irregularity appears **structural to the DGP**, not periodicity.
+
+### Recommendations (next steps)
+1. **Redesign DGP to a fully smooth, randomized population** (no deterministic quantiles/spikes), e.g.:
+   - Draw y0 i.i.d. from a smooth distribution (e.g., standardized Student‑t or skew‑normal), then fix that population per N (randomized once per N, but not quantile‑based).
+   - Use multiple seeds to verify stability and avoid deterministic lattice effects.
+2. **Switch to a regime where theory approximations are expected to be accurate**:
+   - Focus on parity‑fails or CRA sampling regimes where the observed slopes already align with O(N^{-1/2}) or O(N^{-1}).
+   - Document parity‑holds as unsupported under current DGPs rather than forcing asymptotics.
+
+## Option A: Smooth Randomized DGP (Symmetric t + Lognormal) (2026-02-23)
+Goal: remove deterministic grid artifacts by drawing a **random smooth population per N**, then fixing it for assignment MC.
+
+Config:
+- `configs/parity_deterministic_periodicity_diag_optionA.toml`
+- parity_holds_dgp = `symmetric_t`, t_df = 3.0 (standardized)
+- parity_fails_dgp = `lognormal`, sigma = 1.8 (standardized)
+- N grid: 3000..3800 by 50
+- r_cov=200000, r_skew=20000, antithetic=true
+
+Runs (3 seeds):
+- `run_parity_deterministic_periodicity_diag_optionA_seed20260223_hash05f7fb49`
+- `run_parity_deterministic_periodicity_diag_optionA_seed20260224_hash05f7fb49`
+- `run_parity_deterministic_periodicity_diag_optionA_seed20260225_hash05f7fb49`
+
+Findings (gaussian method):
+- Parity‑holds errors are **near zero and flat** across N; per‑seed slopes are ~0.
+- Parity‑fails remains negatively biased; no clean decay over this narrow window.
+
+### Extended N test (3000–12000 by 1000)
+Config:
+- `configs/parity_deterministic_optionA_extN.toml`
+
+Runs (3 seeds):
+- `run_parity_deterministic_optionA_extN_seed20260223_hashde32ad7a`
+- `run_parity_deterministic_optionA_extN_seed20260224_hashde32ad7a`
+- `run_parity_deterministic_optionA_extN_seed20260225_hashde32ad7a`
+
+Plots:
+- `plots/parity_det/<run_id>/figs/parity_coverage.png`
+- `plots/parity_det/<run_id>/figs/parity_rate_N.png`
+- `plots/parity_det/<run_id>/figs/parity_rate_sqrtN.png`
+- `plots/parity_det/<run_id>/figs/parity_scaling.png`
+
+Summary:
+- Parity‑holds (gaussian): mean error ≈ 0 with **no visible trend**; slope ≈ −4e‑08 per N.
+- Parity‑fails (gaussian): negative bias persists, but slope ≈ 0 on this window.
+- Calibrated method: errors are small and flat for both regimes (as expected after removing leading skew term).
+
+### Conclusion (Decision)
+At the current compute scale, **parity‑holds is not empirically resolvable** for these DGPs. The error signal is too small and non‑monotone to support an O(N^{-1}) rate claim.
+We will **document this limitation** rather than push further brute‑force runs.
+
+## Parity Tail Extension (2026-02-23)
+Decision: extend the parity N grid with `2800, 3200, 3600, 4000, 4400, 4800` using a tail-only run, then merge with the prior 512× extB results to avoid recomputing existing N values. Tail slope diagnostics are computed with `k=5` largest-N points.
+
+Run (tail only):
+- config: `configs/parity_highmc512x_extB_tail.toml`
+- run_id: `run_parity_highmc512x_extB_tail_seed20260223`
+- N grid: 2800, 3200, 3600, 4000, 4400, 4800
+- B=1280, r_skew=12800, r_cov=25600, delta=0.5
+- workers: 12
+- runtime: ~3h 05m 34s
+- master table: `outputs/master/run_parity_highmc512x_extB_tail_seed20260223/tables/master_table.csv`
+
+Merged (full grid for plots/slopes):
+- combined run_id: `run_parity_highmc512x_extB_combo_seed20260223`
+- master table: `outputs/master/run_parity_highmc512x_extB_combo_seed20260223/tables/master_table.csv`
+- plots: `plots/parity/run_parity_highmc512x_extB_combo_seed20260223/figs/`
+  - `parity_coverage.png`
+  - `parity_rate_N.png`
+  - `parity_rate_sqrtN.png`
+  - `parity_scaling.png`
+- tail slope (k=5): `outputs/master/run_parity_highmc512x_extB_combo_seed20260223/tables/parity_tail_slopes_k5.csv`
 
 ## C7 Objective Bayes (Faithful Missing-Mass Posterior)
 Run:

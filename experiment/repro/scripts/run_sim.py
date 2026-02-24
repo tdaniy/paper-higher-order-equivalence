@@ -90,6 +90,7 @@ def _parity_worker(
         float,
         float,
         bool,
+        bool,
     ]
 ):
     (
@@ -108,6 +109,7 @@ def _parity_worker(
         spike_prob,
         spike_scale,
         spike_standardize,
+        antithetic,
     ) = args
     ss_pop, ss_sk, ss_cv = pop_ss.spawn(3)
     rng_pop = Generator(Philox(ss_pop))
@@ -139,6 +141,7 @@ def _parity_worker(
         alpha,
         rng_skew,
         rng_cov,
+        antithetic=antithetic,
     )
     return (
         ga.covered,
@@ -564,6 +567,79 @@ def gen_binary(rng: Generator, n: int, p0: float, p1: float) -> Tuple[np.ndarray
     return y0, y1, float(p1 - p0)
 
 
+def gen_deterministic_symmetric_spike(
+    n: int,
+    spike_prob: float,
+    spike_scale: float,
+    base_scale: float = 1.0,
+    standardize: bool = True,
+    mode: str = "rounding",
+    rng: Generator | None = None,
+) -> np.ndarray:
+    half = n // 2
+    if half <= 0:
+        return np.array([0.0], dtype=float)
+
+    values = np.full(half, base_scale, dtype=float)
+    if mode == "randomized":
+        if rng is None:
+            raise ValueError("rng is required for randomized spike mode")
+        mask = rng.random(half) < spike_prob
+        if spike_prob > 0 and not mask.any():
+            mask[int(rng.integers(0, half))] = True
+        values[mask] = spike_scale
+    elif mode == "smooth":
+        target = half * spike_prob
+        spike_pairs = int(math.floor(target))
+        frac = target - spike_pairs
+        spike_pairs = min(max(spike_pairs, 0), half)
+        if spike_pairs > 0:
+            values[:spike_pairs] = spike_scale
+        if spike_pairs < half and frac > 0:
+            values[spike_pairs] = base_scale + frac * (spike_scale - base_scale)
+    else:
+        spike_pairs = int(round(half * spike_prob))
+        if spike_prob > 0:
+            spike_pairs = max(1, spike_pairs)
+        spike_pairs = min(spike_pairs, half)
+        if spike_pairs > 0:
+            values[:spike_pairs] = spike_scale
+    y = np.concatenate([values, -values])
+    if n % 2 == 1:
+        y = np.concatenate([y, np.array([0.0])])
+    if standardize:
+        mean = float(np.mean(y))
+        std = float(np.std(y, ddof=0))
+        if std > 0:
+            y = (y - mean) / std
+    return y.astype(float, copy=False)
+
+
+def gen_deterministic_lognormal(
+    n: int,
+    mu: float,
+    sigma: float,
+    standardize: bool = True,
+) -> np.ndarray:
+    u = (np.arange(1, n + 1, dtype=float) - 0.5) / n
+    z = np.array([norm_ppf(ui) for ui in u], dtype=float)
+    y = np.exp(mu + sigma * z)
+    if standardize:
+        mean = float(np.mean(y))
+        std = float(np.std(y, ddof=0))
+        if std > 0:
+            y = (y - mean) / std
+    return y.astype(float, copy=False)
+
+
+def standardize_array(y: np.ndarray) -> np.ndarray:
+    mean = float(np.mean(y))
+    std = float(np.std(y, ddof=0))
+    if std > 0:
+        y = (y - mean) / std
+    return y.astype(float, copy=False)
+
+
 def build_strata(n: int, weights: List[float]) -> List[np.ndarray]:
     counts = [int(round(w * n)) for w in weights]
     diff = n - sum(counts)
@@ -625,11 +701,46 @@ def simulate_population(
     lattice: bool = False,
     jitter: bool = False,
     one_sided: bool = False,
+    antithetic: bool = False,
 ) -> Tuple[float, float, float, float, CoverageStats, CoverageStats, CoverageStats, float, float, float]:
+    n = y0.size
+
+    def complement_assignment(treated: np.ndarray) -> np.ndarray:
+        mask = np.zeros(n, dtype=bool)
+        mask[treated] = True
+        return np.flatnonzero(~mask)
+
+    def iter_assignments(rng: Generator, count: int):
+        if count <= 0:
+            return
+        if not antithetic:
+            for _ in range(count):
+                yield assign_fn(rng)
+            return
+
+        first = assign_fn(rng)
+        n1 = first.size
+        n0 = n - n1
+        if n1 != n0:
+            yield first
+            for _ in range(count - 1):
+                yield assign_fn(rng)
+            return
+
+        yield first
+        yield complement_assignment(first)
+        produced = 2
+        pairs = (count - produced) // 2
+        for _ in range(pairs):
+            tr = assign_fn(rng)
+            yield tr
+            yield complement_assignment(tr)
+        if (count - produced) % 2 == 1:
+            yield assign_fn(rng)
+
     t_vals = np.empty(r_skew, dtype=float)
     deltas = []
-    for i in range(r_skew):
-        tr = assign_fn(rng_skew)
+    for i, tr in enumerate(iter_assignments(rng_skew, r_skew)):
         tau_hat, vhat, _ = compute_vhat(y0, y1, tr)
         t = (tau_hat - tau) / math.sqrt(vhat)
         t_vals[i] = t
@@ -663,8 +774,7 @@ def simulate_population(
     cf = CoverageStats()
     calib = CoverageStats()
 
-    for _ in range(r_cov):
-        tr = assign_fn(rng_cov)
+    for tr in iter_assignments(rng_cov, r_cov):
         tau_hat, vhat, _ = compute_vhat(y0, y1, tr)
         se = math.sqrt(vhat)
         if one_sided:
@@ -868,6 +978,9 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
     spike_prob = float(cfg.get("spike_prob", 0.02))
     spike_scale = float(cfg.get("spike_scale", 20.0))
     spike_standardize = bool(cfg.get("spike_standardize", True))
+    antithetic = bool(cfg.get("antithetic_assignments", False))
+    parity_holds_f = float(cfg.get("parity_holds_f", 0.5))
+    parity_fails_f = float(cfg.get("parity_fails_f", 0.7))
 
     experiment = "parity"
     spawn_keys = []
@@ -876,7 +989,7 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
 
     for regime in ["parity_holds", "parity_fails"]:
         for n in n_grid:
-            f_eff = 0.5 if regime == "parity_holds" else 0.7
+            f_eff = parity_holds_f if regime == "parity_holds" else parity_fails_f
             n1 = max(5, int(round(f_eff * n)))
             n0 = n - n1
             if n0 < 5:
@@ -899,6 +1012,7 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
                 spike_prob=spike_prob,
                 spike_scale=spike_scale,
                 spike_standardize=spike_standardize,
+                antithetic=antithetic,
             )
             spawn_keys.append(
                 {
@@ -912,6 +1026,7 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
                     "spike_prob": spike_prob,
                     "spike_scale": spike_scale,
                     "spike_standardize": spike_standardize,
+                    "antithetic": antithetic,
                     "hash": stable_hash_int(tag),
                 }
             )
@@ -947,6 +1062,7 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
                         spike_prob,
                         spike_scale,
                         spike_standardize,
+                        antithetic,
                     )
                     for pop_ss in pop_seqs
                 ]
@@ -1006,6 +1122,7 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
                             spike_prob,
                             spike_scale,
                             spike_standardize,
+                            antithetic,
                         )
                     )
                     gauss_all.covered += ga_cov
@@ -1070,6 +1187,200 @@ def run_parity(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[
         ensure_dir(os.path.dirname(plot_path))
         fig.tight_layout()
         fig.savefig(plot_path, dpi=200)
+
+
+def run_parity_deterministic(
+    cfg: Dict,
+    seed: int,
+    run_id: str,
+    repro_root: str,
+    master: List[Dict],
+    config_path: str,
+    alpha: float,
+) -> None:
+    n_grid = cfg["n_grid"]
+    r_skew = cfg["r_skew"]
+    r_cov = cfg["r_cov"]
+    delta = float(cfg.get("delta", 0.5))
+    spike_prob = float(cfg.get("spike_prob", 0.02))
+    spike_scale = float(cfg.get("spike_scale", 20.0))
+    spike_standardize = bool(cfg.get("spike_standardize", True))
+    spike_mode = str(cfg.get("spike_mode", "rounding"))
+    base_scale = float(cfg.get("base_scale", 1.0))
+    parity_holds_dgp = str(cfg.get("parity_holds_dgp", "deterministic_spike"))
+    parity_holds_standardize = bool(cfg.get("parity_holds_standardize", True))
+    t_df = float(cfg.get("t_df", 3.0))
+    mix_weight = float(cfg.get("mix_weight", 0.05))
+    mix_scale = float(cfg.get("mix_scale", 10.0))
+    parity_holds_f = float(cfg.get("parity_holds_f", 0.5))
+    parity_fails_f = float(cfg.get("parity_fails_f", 0.7))
+    parity_fails_dgp = str(cfg.get("parity_fails_dgp", "deterministic_lognormal"))
+    log_mu = float(cfg.get("parity_fails_lognormal_mu", 0.0))
+    log_sigma = float(cfg.get("parity_fails_lognormal_sigma", 1.2))
+    log_standardize = bool(cfg.get("parity_fails_standardize", True))
+    antithetic = bool(cfg.get("antithetic_assignments", False))
+
+    experiment = "parity_det"
+    spawn_keys = []
+    total_tasks = len(n_grid) * 2
+    progress = ModuleProgress("parity_det", total_tasks)
+
+    for regime in ["parity_holds", "parity_fails"]:
+        for n in n_grid:
+            f_eff = parity_holds_f if regime == "parity_holds" else parity_fails_f
+            n1 = max(5, int(round(f_eff * n)))
+            n0 = n - n1
+            if n0 < 5:
+                n0 = 5
+                n1 = n - n0
+            f_eff = n1 / n
+
+            tag = scenario_tag(
+                "parity_det",
+                regime=regime,
+                n=n,
+                f=f_eff,
+                r_skew=r_skew,
+                r_cov=r_cov,
+                delta=delta,
+                spike_prob=spike_prob,
+                spike_scale=spike_scale,
+                spike_standardize=spike_standardize,
+                spike_mode=spike_mode,
+                base_scale=base_scale,
+                parity_holds_dgp=parity_holds_dgp,
+                parity_holds_standardize=parity_holds_standardize,
+                t_df=t_df,
+                mix_weight=mix_weight,
+                mix_scale=mix_scale,
+                parity_fails_dgp=parity_fails_dgp,
+                log_mu=log_mu,
+                log_sigma=log_sigma,
+                log_standardize=log_standardize,
+                antithetic=antithetic,
+            )
+            spawn_keys.append(
+                {
+                    "N": n,
+                    "f": f_eff,
+                    "regime": regime,
+                    "spike_prob": spike_prob,
+                    "spike_scale": spike_scale,
+                    "spike_standardize": spike_standardize,
+                    "spike_mode": spike_mode,
+                    "base_scale": base_scale,
+                    "parity_holds_dgp": parity_holds_dgp,
+                    "parity_holds_standardize": parity_holds_standardize,
+                    "t_df": t_df,
+                    "mix_weight": mix_weight,
+                    "mix_scale": mix_scale,
+                    "parity_fails_dgp": parity_fails_dgp,
+                    "log_mu": log_mu,
+                    "log_sigma": log_sigma,
+                    "log_standardize": log_standardize,
+                    "antithetic": antithetic,
+                    "hash": stable_hash_int(tag),
+                }
+            )
+
+            ss = rng_sequence(seed, tag)
+            ss_pop, ss_sk, ss_cv = ss.spawn(3)
+            rng_pop = Generator(Philox(ss_pop))
+            rng_skew = Generator(Philox(ss_sk))
+            rng_cov = Generator(Philox(ss_cv))
+
+            if regime == "parity_holds":
+                if parity_holds_dgp == "deterministic_spike":
+                    y0 = gen_deterministic_symmetric_spike(
+                        n,
+                        spike_prob=spike_prob,
+                        spike_scale=spike_scale,
+                        base_scale=base_scale,
+                        standardize=spike_standardize,
+                        mode=spike_mode,
+                        rng=rng_pop,
+                    )
+                elif parity_holds_dgp == "symmetric_normal":
+                    y0, _y1, _tau = gen_symmetric(rng_pop, n, delta)
+                    if parity_holds_standardize:
+                        y0 = standardize_array(y0)
+                elif parity_holds_dgp == "symmetric_t":
+                    y0, _y1, _tau = gen_symmetric_t(rng_pop, n, delta, t_df)
+                    if parity_holds_standardize:
+                        y0 = standardize_array(y0)
+                elif parity_holds_dgp == "symmetric_mixture":
+                    y0, _y1, _tau = gen_symmetric_mixture(rng_pop, n, delta, mix_weight, mix_scale)
+                    if parity_holds_standardize:
+                        y0 = standardize_array(y0)
+                elif parity_holds_dgp == "symmetric_spike":
+                    y0, _y1, _tau = gen_symmetric_spike(
+                        rng_pop, n, delta, spike_prob, spike_scale, spike_standardize
+                    )
+                    if parity_holds_standardize and not spike_standardize:
+                        y0 = standardize_array(y0)
+                else:
+                    raise ValueError(f"Unknown parity_holds_dgp: {parity_holds_dgp}")
+            else:
+                if parity_fails_dgp == "deterministic_lognormal":
+                    y0 = gen_deterministic_lognormal(
+                        n,
+                        mu=log_mu,
+                        sigma=log_sigma,
+                        standardize=log_standardize,
+                    )
+                elif parity_fails_dgp == "lognormal":
+                    y0, _y1, _tau = gen_lognormal(rng_pop, n, log_mu, log_sigma, delta)
+                    if log_standardize:
+                        y0 = standardize_array(y0)
+                else:
+                    raise ValueError(f"Unknown parity_fails_dgp: {parity_fails_dgp}")
+            y1 = y0 + delta
+            tau = float(delta)
+
+            assign_fn = lambda rng, n=n, n1=n1: draw_cra(rng, n, n1)
+
+            progress.start_task(f"{regime} N={n}", r_cov)
+            gamma_hat, kurt, _ql, _qh, ga, cf, cal, _q1, _p, _pj = simulate_population(
+                y0,
+                y1,
+                tau,
+                assign_fn,
+                r_skew,
+                r_cov,
+                alpha,
+                rng_skew,
+                rng_cov,
+                antithetic=antithetic,
+            )
+            progress.finish_task()
+
+            for method, stats in [("gaussian", ga), ("cornish_fisher", cf), ("calibrated", cal)]:
+                master.append(
+                    {
+                        "module": experiment,
+                        "design": regime,
+                        "outcome": "continuous",
+                        "method": method,
+                        "N": n,
+                        "m_N": n,
+                        "f": f_eff,
+                        "B": 1,
+                        "R": r_cov,
+                        "S": "",
+                        "coverage": stats.rate(),
+                        "mcse": stats.mcse(),
+                        "avg_length": stats.mean_length(),
+                        "skew": gamma_hat,
+                        "kurtosis": kurt,
+                        "periodicity": "",
+                        "lambda_N": "",
+                        "variance_ratio": "",
+                        "endpoint_diff": "",
+                    }
+                )
+
+    make_manifest(repro_root, experiment, run_id, config_path, seed, spawn_keys)
+    progress.finish()
 
 
 def run_lattice(cfg: Dict, seed: int, run_id: str, repro_root: str, master: List[Dict], config_path: str, alpha: float) -> None:
@@ -1805,19 +2116,34 @@ def main() -> None:
 
     master_rows: List[Dict] = []
     alpha = cfg["meta"]["alpha"]
+    master_path = os.path.join(repro_root, "outputs", "master", run_id, "tables", "master_table.csv")
+    ensure_dir(os.path.dirname(master_path))
+
+    def checkpoint() -> None:
+        write_csv(master_path, master_rows)
+
+    def run_if_present(key: str, fn, *fn_args) -> None:
+        if key not in cfg:
+            print(f"[{key}] SKIP: missing config section '{key}'")
+            return
+        try:
+            fn(cfg[key], *fn_args)
+            checkpoint()
+        except Exception:
+            checkpoint()
+            raise
 
     # Run modules
-    run_cra_sampling(cfg["cra_sampling"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_parity(cfg["parity"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_lattice(cfg["lattice"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_stratified(cfg["stratified"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_cluster(cfg["cluster"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_one_sided(cfg["one_sided"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_objective_bayes(cfg["objective_bayes"], seed, run_id, repro_root, master_rows, config_path, alpha)
-    run_fpc(cfg["fpc"], seed, run_id, repro_root, master_rows, config_path)
+    run_if_present("cra_sampling", run_cra_sampling, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("parity", run_parity, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("lattice", run_lattice, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("stratified", run_stratified, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("cluster", run_cluster, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("one_sided", run_one_sided, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("objective_bayes", run_objective_bayes, seed, run_id, repro_root, master_rows, config_path, alpha)
+    run_if_present("fpc", run_fpc, seed, run_id, repro_root, master_rows, config_path)
 
-    master_path = os.path.join(repro_root, "outputs", "master", run_id, "tables", "master_table.csv")
-    write_csv(master_path, master_rows)
+    checkpoint()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,15 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[cra_sampling]
+# Quick smoke: 2 points, small MC
+n_grid = [3600, 4000]
+f_grid = [0.50]
+near_census_c = []
+B = 5
+r_skew = 200
+r_cov = 400
+mu = 0.0
+sigma = 1.2
+delta = 0.5

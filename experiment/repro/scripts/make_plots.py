@@ -162,10 +162,18 @@ def _plot_theory_line(ax: plt.Axes, xs: List[float], y0: float, power: float, la
     ax.plot(xs, ys, linestyle="--", color="black", linewidth=1, label=label)
 
 
-def plot_parity_rates(rows: List[Dict], run_id: str, repro_root: str, alpha: float, slope_rows: List[Dict]) -> None:
-    data = [r for r in rows if r["module"] == "parity" and r["method"] == "calibrated"]
+def plot_parity_rates(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    alpha: float,
+    slope_rows: List[Dict],
+    module_name: str = "parity",
+) -> None:
+    data = [r for r in rows if r["module"] == module_name and r["method"] == "calibrated"]
     if not data:
         return
+    plot_dir = module_name
     series = {}
     for regime in ["parity_holds", "parity_fails"]:
         pts = sorted([r for r in data if r["design"] == regime], key=lambda x: x["m_N"])
@@ -179,7 +187,7 @@ def plot_parity_rates(rows: List[Dict], run_id: str, repro_root: str, alpha: flo
         slope, slope_low, slope_high = _slope_with_band(sel_x, sel_y, sel_low, sel_high)
         slope_rows.append(
             {
-                "module": "parity",
+                "module": module_name,
                 "design": regime,
                 "outcome": "continuous",
                 "method": "calibrated",
@@ -211,7 +219,7 @@ def plot_parity_rates(rows: List[Dict], run_id: str, repro_root: str, alpha: flo
         ax.set_title(f"Parity rate scaling ({suffix})")
         ax.legend()
         ax.grid(True, alpha=0.3)
-        plot_path = os.path.join(repro_root, "plots", "parity", run_id, "figs", f"parity_rate_{suffix}.png")
+        plot_path = os.path.join(repro_root, "plots", plot_dir, run_id, "figs", f"parity_rate_{suffix}.png")
         ensure_dir(os.path.dirname(plot_path))
         fig.tight_layout()
         fig.savefig(plot_path, dpi=200)
@@ -284,10 +292,17 @@ def plot_cra_sampling_rates(rows: List[Dict], run_id: str, repro_root: str, alph
         fig.savefig(plot_path, dpi=200)
 
 
-def plot_parity(rows: List[Dict], run_id: str, repro_root: str, alpha: float) -> None:
-    data = [r for r in rows if r["module"] == "parity" and r["method"] == "calibrated"]
+def plot_parity(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    alpha: float,
+    module_name: str = "parity",
+) -> None:
+    data = [r for r in rows if r["module"] == module_name and r["method"] == "calibrated"]
     if not data:
         return
+    plot_dir = module_name
     fig, ax = plt.subplots(figsize=(6.5, 4))
     for regime in ["parity_holds", "parity_fails"]:
         pts = sorted([r for r in data if r["design"] == regime], key=lambda x: x["N"])
@@ -301,16 +316,23 @@ def plot_parity(rows: List[Dict], run_id: str, repro_root: str, alpha: float) ->
     ax.set_title("Parity modules (calibrated)")
     ax.legend()
     ax.grid(True, alpha=0.3)
-    plot_path = os.path.join(repro_root, "plots", "parity", run_id, "figs", "parity_coverage.png")
+    plot_path = os.path.join(repro_root, "plots", plot_dir, run_id, "figs", "parity_coverage.png")
     ensure_dir(os.path.dirname(plot_path))
     fig.tight_layout()
     fig.savefig(plot_path, dpi=200)
 
 
-def plot_parity_scaling(rows: List[Dict], run_id: str, repro_root: str, alpha: float) -> None:
-    data = [r for r in rows if r["module"] == "parity" and r["method"] == "gaussian"]
+def plot_parity_scaling(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    alpha: float,
+    module_name: str = "parity",
+) -> None:
+    data = [r for r in rows if r["module"] == module_name and r["method"] == "gaussian"]
     if not data:
         return
+    plot_dir = module_name
     series = {}
     for regime in ["parity_holds", "parity_fails"]:
         pts = sorted([r for r in data if r["design"] == regime], key=lambda x: x["N"])
@@ -338,7 +360,7 @@ def plot_parity_scaling(rows: List[Dict], run_id: str, repro_root: str, alpha: f
     ax.set_title("Parity regimes: gaussian scaling")
     ax.legend()
     ax.grid(True, alpha=0.3)
-    plot_path = os.path.join(repro_root, "plots", "parity", run_id, "figs", "parity_scaling.png")
+    plot_path = os.path.join(repro_root, "plots", plot_dir, run_id, "figs", "parity_scaling.png")
     ensure_dir(os.path.dirname(plot_path))
     fig.tight_layout()
     fig.savefig(plot_path, dpi=200)
@@ -543,9 +565,11 @@ def main() -> None:
 
     alpha = 0.05
     slope_rows: List[Dict] = []
-    plot_parity(rows, run_id, repro_root, alpha)
-    plot_parity_rates(rows, run_id, repro_root, alpha, slope_rows)
-    plot_parity_scaling(rows, run_id, repro_root, alpha)
+    parity_modules = [m for m in ("parity", "parity_det") if any(r.get("module") == m for r in rows)]
+    for module_name in parity_modules:
+        plot_parity(rows, run_id, repro_root, alpha, module_name=module_name)
+        plot_parity_rates(rows, run_id, repro_root, alpha, slope_rows, module_name=module_name)
+        plot_parity_scaling(rows, run_id, repro_root, alpha, module_name=module_name)
     plot_stratified(rows, run_id, repro_root, alpha)
     plot_cluster(rows, run_id, repro_root, alpha)
     plot_one_sided(rows, run_id, repro_root, alpha, compare_rows=compare_rows)

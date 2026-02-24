@@ -1,0 +1,3 @@
+module,design,outcome,method,scale,slope,slope_low,slope_high,n_points
+parity_det,parity_holds,continuous,calibrated,error,-1.021902109566632,-5.186010851422059,-0.53475869613665,4
+parity_det,parity_fails,continuous,calibrated,error,-0.9302111742628998,-2.7772741540006507,-0.5844155701096511,4

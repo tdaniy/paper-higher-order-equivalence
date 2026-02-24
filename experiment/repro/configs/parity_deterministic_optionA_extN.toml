@@ -1,0 +1,30 @@
+[meta]
+base_seed = 20260223
+alpha = 0.05
+
+[parity_deterministic]
+# Extended N grid: 3000..12000 by 1000
+n_grid = [3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000]
+
+# MC: keep high to avoid noise floor
+r_skew = 20000
+r_cov = 200000
+
+# Effect size
+delta = 1.0
+
+# Parity-holds: smooth randomized population (symmetric t)
+parity_holds_dgp = "symmetric_t"
+parity_holds_standardize = true
+t_df = 3.0
+
+# Parity-fails: smooth randomized population (lognormal)
+parity_fails_dgp = "lognormal"
+parity_fails_lognormal_mu = 0.0
+parity_fails_lognormal_sigma = 1.8
+parity_fails_standardize = true
+
+parity_holds_f = 0.5
+parity_fails_f = 0.8
+
+antithetic_assignments = true
