@@ -159,15 +159,6 @@ Summary (calibrated parity_holds):
 
 Interpretation: the spike DGP produces a stronger signal, and the last segment is consistent with O(m_N^{-1}), but the tail slope over multiple points remains shallower than −1.
 
-### Next Steps (Parity-Holds Rate)
-To credibly claim O(m_N^{-1}), extend the N grid upward and re-estimate slopes over a wider tail window (at least 5 tail points). The goal is to confirm whether the near −1 *local* slope observed at N=2000→2400 persists across higher N values (trend confirmation).
-
-Note: the parity scaling plot (`parity_scaling.png`, sqrt(N)·|err|) would especially benefit from an extended N-grid to make the tail trend clearer and more diagnostic.
-
-Additional note: a few more large-N points (e.g., 3–4 additional grid values) would improve trend diagnostics across the parity plots, especially for tail-slope confirmation.
-
-Pending item: the CRA 512× extended run (`run_cra_sampling_highmc512x_extB_seed20260222`) remains on the agenda and should be executed after the parity tail extension to complete the high-MC rate diagnostics.
-
 ## CRA 512× Tail-Only Extension (2026-02-24)
 Goal: reduce continuous heat exposure while extending the CRA tail window (N=3600–4800).
 
@@ -268,14 +259,6 @@ Finding (gaussian method):
 
 Conclusion: the **rounding artifact is real**, but even after removing it (smooth or randomized spikes), the parity‑holds drift persists. The irregularity appears **structural to the DGP**, not periodicity.
 
-### Recommendations (next steps)
-1. **Redesign DGP to a fully smooth, randomized population** (no deterministic quantiles/spikes), e.g.:
-   - Draw y0 i.i.d. from a smooth distribution (e.g., standardized Student‑t or skew‑normal), then fix that population per N (randomized once per N, but not quantile‑based).
-   - Use multiple seeds to verify stability and avoid deterministic lattice effects.
-2. **Switch to a regime where theory approximations are expected to be accurate**:
-   - Focus on parity‑fails or CRA sampling regimes where the observed slopes already align with O(N^{-1/2}) or O(N^{-1}).
-   - Document parity‑holds as unsupported under current DGPs rather than forcing asymptotics.
-
 ## Option A: Smooth Randomized DGP (Symmetric t + Lognormal) (2026-02-23)
 Goal: remove deterministic grid artifacts by drawing a **random smooth population per N**, then fixing it for assignment MC.
 
@@ -361,3 +344,13 @@ Key results (posterior variance ratio and endpoint alignment vs pivot):
 | stratified | 800 | 0.9944 | 0.1670 |
 
 Runtime note: the faithful missing-mass posterior is substantially more expensive; the Stage-2 run above took ~1h 17m on this machine.
+
+## Next Steps
+- Re-run the CRA tail-only high-MC job with the **CRA-only runner** so results are saved:  
+  `REPRO_WORKERS=8 uv run python scripts/run_cra_sampling_only.py --config configs/cra_sampling_highmc512x_extB_tail.toml`
+- Generate plots and tail diagnostics from the CRA tail-only master table (once the rerun completes).
+- Decide whether to run the **full** CRA 512× extended grid (`configs/cra_sampling_highmc512x_extB.toml`, now includes 3600–4800) or keep a tail-only extension; document the decision.
+- Update the C3 near-census summary once CRA tail diagnostics are available (rate slopes + err/MCSE in the tail).
+- Add explicit **C1 forced-pivot / Gaussian-shift proxy diagnostics** (QQ/distance metrics) and include their rate plots in the reproducibility report.
+- Add explicit **C4 lattice jitter** before/after periodicity summary and plots to the reproducibility report.
+- Expand `figure_map.json` so every paper figure maps to a run ID and artifacts (not just stress tests).
