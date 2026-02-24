@@ -354,3 +354,8 @@ Runtime note: the faithful missing-mass posterior is substantially more expensiv
 - Add explicit **C1 forced-pivot / Gaussian-shift proxy diagnostics** (QQ/distance metrics) and include their rate plots in the reproducibility report.
 - Add explicit **C4 lattice jitter** before/after periodicity summary and plots to the reproducibility report.
 - Expand `figure_map.json` so every paper figure maps to a run ID and artifacts (not just stress tests).
+- Reconsider parity-holds using **variance-reduced MLMC/CRN** instead of brute-force N:
+  - Couple N and 2N runs with shared RNG streams for population + assignments (common random numbers).
+  - Estimate `Δerr = err(2N) − err(N)` directly to amplify the O(N^{-1}) term.
+  - Reuse existing RNG tagging and add a small wrapper that draws paired assignments so both N and 2N share randomness where possible.
+  - Report slopes from `Δerr` vs N (paired differences) rather than raw errors.
