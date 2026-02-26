@@ -1,0 +1,25 @@
+[meta]
+alpha = 0.05
+base_seed = 20260225
+
+[skew_rate_diag]
+# N grid and treatment fractions (p=0.5 should suppress the leading term)
+n_grid = [6400, 8000, 10000, 12800, 16000, 20000, 25600, 32000]
+f_grid = [0.50, 0.25, 0.20]
+
+# Outer populations and assignment Monte Carlo
+B = 8
+r_skew = 8000
+r_cov = 20000
+
+# Potential outcomes
+delta = 0.5
+base_dist = "normal"      # "normal" or "t"
+t_df = 8.0
+base_standardize = true
+
+# Skewed treatment component (mean 0, var 1 before scaling)
+skew_dist = "lognormal"   # "gamma" or "lognormal"
+gamma_shape = 4.0
+log_sigma = 0.5
+skew_scale = 2.5

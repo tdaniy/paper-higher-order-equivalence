@@ -1,0 +1,323 @@
+{
+  "base_seed": 20260225,
+  "command": [
+    "scripts/run_skew_rate_diag.py",
+    "--config",
+    "configs/skew_rate_diag_example.toml"
+  ],
+  "config_hash": "390f1a4f280c7697e888ad0b07e8e5770b91399e506da0b2b3991fc08be7a2cd",
+  "config_path": "/home/tdaniyar/src/paper-higher-order-equivalence/experiment/repro/configs/skew_rate_diag_example.toml",
+  "git": {
+    "commit": null,
+    "dirty": null
+  },
+  "platform": {
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "system": "Linux"
+  },
+  "run_id": "run_skew_rate_diag_example_seed20260225_hash390f1a4f",
+  "spawn_keys": [
+    {
+      "N": 6400,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 15359252468900260487,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 6400,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 9004583444580291143,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 6400,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 9761801805123293725,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 8000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 15299356140695912983,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 8000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 3223236491293222971,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 8000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 133457747736557538,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 10000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 11989639629699638427,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 10000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 5942315919311140554,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 10000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 7934254771939417345,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 12800,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 6364243906051166507,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 12800,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 3181805355039151343,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 12800,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 8341608436115165120,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 16000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 14536304889448402848,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 16000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 11179642739547375969,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 16000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 11564708540960654996,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 20000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 12438615631597834256,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 20000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 1118894188704061778,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 20000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 823046580598255403,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 25600,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 12231551155750461395,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 25600,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 12786770570938956277,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 25600,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 14082772045504544485,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 32000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.5,
+      "gamma_shape": 4.0,
+      "hash": 5809053326493347262,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 32000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.25,
+      "gamma_shape": 4.0,
+      "hash": 4455443043462355066,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    },
+    {
+      "N": 32000,
+      "base_dist": "normal",
+      "base_standardize": true,
+      "f": 0.2,
+      "gamma_shape": 4.0,
+      "hash": 5511895048949933058,
+      "log_sigma": 0.5,
+      "skew_dist": "lognormal",
+      "skew_scale": 1.6,
+      "t_df": 8.0
+    }
+  ],
+  "thread_env": {
+    "MKL_NUM_THREADS": null,
+    "NUMEXPR_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null
+  },
+  "versions": {
+    "matplotlib": "3.8.4",
+    "numpy": "1.26.4",
+    "python": "3.12.3",
+    "uv": "uv 0.10.4"
+  }
+}

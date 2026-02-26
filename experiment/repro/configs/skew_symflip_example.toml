@@ -1,0 +1,24 @@
+[meta]
+alpha = 0.05
+base_seed = 20260225
+
+[skew_symflip]
+# Tail-focused grid to show N^{-1/2} on |Δe|
+n_grid = [800, 1600, 3200, 6400, 12800]
+f = 0.25
+
+# Monte Carlo
+B = 10
+R = 20000
+
+# DGP
+tau = 0.5
+mu = 0.0
+s = 1.0
+g_dist = "lognormal"   # "lognormal" or "gamma"
+g_log_sigma = 0.5
+g_gamma_shape = 4.0
+
+# Pairing / one-sided
+use_crn = true
+one_sided = "upper"    # "upper" uses tau <= tau_hat + z_{1-alpha} * SE

@@ -366,6 +366,217 @@ def plot_parity_scaling(
     fig.savefig(plot_path, dpi=200)
 
 
+def plot_parity_error_loglog(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    alpha: float,
+    module_name: str = "parity",
+) -> None:
+    data = [r for r in rows if r["module"] == module_name and r["method"] == "calibrated"]
+    if not data:
+        return
+    plot_dir = module_name
+    series = {}
+    for regime in ["parity_holds", "parity_fails"]:
+        pts = sorted([r for r in data if r["design"] == regime], key=lambda x: x["N"])
+        xs = [p["N"] for p in pts]
+        err = [_coverage_error(p, alpha) for p in pts]
+        bands = [_coverage_error_band(p, alpha) for p in pts]
+        err_low = [b[0] for b in bands]
+        err_high = [b[1] for b in bands]
+        series[regime] = (xs, err, err_low, err_high)
+
+    if not series:
+        return
+
+    eps = 1e-12
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for regime, (xs, err, err_low, err_high) in series.items():
+        ys = [max(e, eps) for e in err]
+        ys_low = [max(e, eps) for e in err_low]
+        ys_high = [max(e, eps) for e in err_high]
+        ax.plot(xs, ys, marker="o", label=regime)
+        ax.fill_between(xs, ys_low, ys_high, alpha=0.2)
+
+    # Theory guide lines (anchored at first point of each regime)
+    if "parity_holds" in series:
+        xs_h, err_h, _, _ = series["parity_holds"]
+        y0_h = max(err_h[0], eps)
+        _plot_theory_line(ax, xs_h, y0_h, -1.0, "theory O(N^-1)")
+    if "parity_fails" in series:
+        xs_f, err_f, _, _ = series["parity_fails"]
+        y0_f = max(err_f[0], eps)
+        _plot_theory_line(ax, xs_f, y0_f, -0.5, "theory O(N^-1/2)")
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_ylim(bottom=1e-6)
+    ax.set_xlabel("N")
+    ax.set_ylabel("|coverage error|")
+    ax.set_title("Parity coverage error (log-log)")
+    ax.legend()
+    ax.grid(True, which="both", alpha=0.3)
+    plot_path = os.path.join(repro_root, "plots", plot_dir, run_id, "figs", "parity_error_loglog.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+
+def plot_symflip(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    slope_rows: List[Dict],
+) -> None:
+    data = [r for r in rows if r["module"] == "skew_symflip" and r["method"] == "symflip_delta"]
+    if not data:
+        return
+
+    series = {}
+    for r in data:
+        fval = _round_key(r.get("f", math.nan), digits=4)
+        series.setdefault(fval, []).append(r)
+
+    # Log-log plot for |Δe|
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for fval, pts in sorted(series.items()):
+        pts = sorted(pts, key=lambda x: x["m_N"])
+        xs = [p["m_N"] for p in pts]
+        delta = [abs(p.get("coverage", math.nan)) for p in pts]
+        mcse = [p.get("mcse", math.nan) for p in pts]
+        err_low = [max(0.0, d - m) if m == m else d for d, m in zip(delta, mcse)]
+        err_high = [d + m if m == m else d for d, m in zip(delta, mcse)]
+        label = f"f={fval}"
+        ax.plot(xs, delta, marker="o", label=label)
+        ax.fill_between(xs, err_low, err_high, alpha=0.2)
+
+        sel_x, sel_y, sel_low, sel_high = _select_tail(xs, delta, err_low, err_high)
+        slope, slope_low, slope_high = _slope_with_band(sel_x, sel_y, sel_low, sel_high)
+        slope_rows.append(
+            {
+                "module": "skew_symflip",
+                "design": f"f={fval}",
+                "outcome": "continuous",
+                "method": "symflip_delta",
+                "scale": "delta_abs",
+                "slope": slope,
+                "slope_low": slope_low,
+                "slope_high": slope_high,
+                "n_points": len(sel_x),
+            }
+        )
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("N")
+    ax.set_ylabel("|Δe(N)|")
+    ax.set_title("Symflip Δe (log–log)")
+    ax.legend()
+    ax.grid(True, which="both", alpha=0.3)
+
+    # Add reference lines using first series
+    first_series = next(iter(series.values()))
+    first_series = sorted(first_series, key=lambda x: x["m_N"])
+    xs0 = [p["m_N"] for p in first_series]
+    ys0 = [abs(p.get("coverage", math.nan)) for p in first_series]
+    if xs0 and ys0:
+        _plot_theory_line(ax, xs0, ys0[0], -0.5, "N^{-1/2}")
+        _plot_theory_line(ax, xs0, ys0[0], -1.0, "N^{-1}")
+
+    plot_path = os.path.join(repro_root, "plots", "skew_symflip", run_id, "figs", "symflip_delta_error.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+    # sqrt(N) * |Δe|
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for fval, pts in sorted(series.items()):
+        pts = sorted(pts, key=lambda x: x["m_N"])
+        xs = [p["m_N"] for p in pts]
+        delta = [abs(p.get("coverage", math.nan)) for p in pts]
+        ys = [d * math.sqrt(x) for d, x in zip(delta, xs)]
+        label = f"f={fval}"
+        ax.plot(xs, ys, marker="o", label=label)
+
+    ax.set_xlabel("N")
+    ax.set_ylabel("sqrt(N) * |Δe(N)|")
+    ax.set_title("Symflip Δe (sqrt scaling)")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plot_path = os.path.join(repro_root, "plots", "skew_symflip", run_id, "figs", "symflip_delta_sqrtN.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+def plot_skew_rate_diag(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    alpha: float,
+    slope_rows: List[Dict],
+) -> None:
+    data = [r for r in rows if r["module"] == "skew_rate_diag" and r["method"] == "gaussian"]
+    if not data:
+        return
+
+    designs = sorted({r["design"] for r in data})
+    series = {}
+    for design in designs:
+        pts = sorted([r for r in data if r["design"] == design], key=lambda x: x["m_N"])
+        xs = [p["m_N"] for p in pts]
+        err = [_coverage_error(p, alpha) for p in pts]
+        bands = [_coverage_error_band(p, alpha) for p in pts]
+        err_low = [b[0] for b in bands]
+        err_high = [b[1] for b in bands]
+        series[design] = (xs, err, err_low, err_high)
+
+        sel_x, sel_y, sel_low, sel_high = _select_tail(xs, err, err_low, err_high)
+        slope, slope_low, slope_high = _slope_with_band(sel_x, sel_y, sel_low, sel_high)
+        slope_rows.append(
+            {
+                "module": "skew_rate_diag",
+                "design": design,
+                "outcome": "continuous",
+                "method": "gaussian",
+                "scale": "error",
+                "slope": slope,
+                "slope_low": slope_low,
+                "slope_high": slope_high,
+                "n_points": len(sel_x),
+            }
+        )
+
+    # Plot error vs N (gaussian)
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for design, (xs, err, _low, _high) in series.items():
+        ax.plot(xs, err, marker="o", label=design)
+    ax.set_xlabel("N")
+    ax.set_ylabel("|coverage - (1-α)|")
+    ax.set_title("Skew-rate diagnostic (gaussian)")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plot_path = os.path.join(repro_root, "plots", "skew_rate_diag", run_id, "figs", "skew_rate_error.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+    # Plot sqrt(N) * error vs N
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for design, (xs, err, _low, _high) in series.items():
+        ys = [e * math.sqrt(x) for e, x in zip(err, xs)]
+        ax.plot(xs, ys, marker="o", label=design)
+    ax.set_xlabel("N")
+    ax.set_ylabel("sqrt(N) * |coverage error|")
+    ax.set_title("Skew-rate diagnostic (gaussian, sqrt scaling)")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plot_path = os.path.join(repro_root, "plots", "skew_rate_diag", run_id, "figs", "skew_rate_sqrtN.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+
 def plot_stratified(rows: List[Dict], run_id: str, repro_root: str, alpha: float) -> None:
     for outcome in ["continuous", "binary"]:
         data = [r for r in rows if r["module"] == "stratified" and r["method"] == "calibrated" and r["outcome"] == outcome]
@@ -570,6 +781,11 @@ def main() -> None:
         plot_parity(rows, run_id, repro_root, alpha, module_name=module_name)
         plot_parity_rates(rows, run_id, repro_root, alpha, slope_rows, module_name=module_name)
         plot_parity_scaling(rows, run_id, repro_root, alpha, module_name=module_name)
+        plot_parity_error_loglog(rows, run_id, repro_root, alpha, module_name=module_name)
+    if any(r.get("module") == "skew_rate_diag" for r in rows):
+        plot_skew_rate_diag(rows, run_id, repro_root, alpha, slope_rows)
+    if any(r.get("module") == "skew_symflip" for r in rows):
+        plot_symflip(rows, run_id, repro_root, slope_rows)
     plot_stratified(rows, run_id, repro_root, alpha)
     plot_cluster(rows, run_id, repro_root, alpha)
     plot_one_sided(rows, run_id, repro_root, alpha, compare_rows=compare_rows)

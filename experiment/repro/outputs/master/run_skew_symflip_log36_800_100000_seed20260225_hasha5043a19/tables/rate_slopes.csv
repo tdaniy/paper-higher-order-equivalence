@@ -1,0 +1,8 @@
+module,design,outcome,method,scale,slope,slope_low,slope_high,n_points
+skew_symflip,f=0.2496,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+skew_symflip,f=0.2498,continuous,symflip_delta,delta_abs,-0.36318497909637715,-0.3903333860853757,-0.3396445946002219,2
+skew_symflip,f=0.2499,continuous,symflip_delta,delta_abs,-0.6053326153942542,-0.6599350133115233,-0.5592373399738739,3
+skew_symflip,f=0.25,continuous,symflip_delta,delta_abs,-0.7890404531788161,-0.42782167466573684,0.48767814348863964,4
+skew_symflip,f=0.2502,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+skew_symflip,f=0.2503,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+skew_symflip,f=0.2505,continuous,symflip_delta,delta_abs,0.22155854680217016,0.20864696047081752,0.23605883996910543,2

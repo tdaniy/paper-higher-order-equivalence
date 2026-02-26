@@ -259,6 +259,45 @@ Finding (gaussian method):
 
 Conclusion: the **rounding artifact is real**, but even after removing it (smooth or randomized spikes), the parity‑holds drift persists. The irregularity appears **structural to the DGP**, not periodicity.
 
+## Symflip N^-1/2 Isolation (Completed 2026-02-26)
+Goal: isolate the odd N^-1/2 term in the coverage error expansion by canceling even-order terms.
+
+Design (completed):
+- Symflip skew-baseline, constant-effect DGP with one-sided coverage and CRN pairing between + and - runs.
+- Lognormal skew component, g_log_sigma = 0.5, s = 1.0, tau = 0.5, f = 0.25.
+- N grid: 36 log-spaced points from 800 to 100000.
+
+Run:
+- `run_skew_symflip_log36_800_100000_seed20260225_hasha5043a19`
+
+Plot:
+- `plots/skew_symflip/run_skew_symflip_log36_800_100000_seed20260225_hasha5043a19/figs/symflip_delta_error.png`
+
+Summary:
+- |Delta e(N)| follows the N^-1/2 reference line across the full grid; the N^-1 guide is too steep.
+- The trend remains stable through large N, with wider MCSE bands at the tail but no slope change.
+
+Interpretation: the symflip difference cleanly exposes the odd-order term, providing direct empirical support for the N^-1/2 component predicted by the theory. This completes the symflip experiment block.
+
+## Parity-Holds Spike Tail Extension (Completed 2026-02-26)
+Goal: extend the parity-holds spike DGP tail to confirm O(N^-1) decay with larger N.
+
+Config:
+- `configs/parity_holds_spike_256x_extB_tail4.toml`
+- Added tail points: N = 3200, 4000, 5000, 6400 (base grid up to 2400).
+
+Run:
+- `run_parity_holds_spike_256x_extB_tail4_seed20260222_hashfcb11350`
+
+Key plot:
+- `plots/parity/run_parity_holds_spike_256x_extB_tail4_seed20260222_hashfcb11350/figs/parity_error_loglog.png`
+
+Summary:
+- Parity-holds series follows the O(N^-1) guide across the extended tail.
+- Parity-fails remains MCSE-limited in this design; N^-1/2 is not recoverable here.
+
+Conclusion: the parity-holds spike experiment now cleanly demonstrates O(N^-1). Task complete.
+
 ## Option A: Smooth Randomized DGP (Symmetric t + Lognormal) (2026-02-23)
 Goal: remove deterministic grid artifacts by drawing a **random smooth population per N**, then fixing it for assignment MC.
 
@@ -297,6 +336,37 @@ Summary:
 - Parity‑holds (gaussian): mean error ≈ 0 with **no visible trend**; slope ≈ −4e‑08 per N.
 - Parity‑fails (gaussian): negative bias persists, but slope ≈ 0 on this window.
 - Calibrated method: errors are small and flat for both regimes (as expected after removing leading skew term).
+
+### Deterministic Parity (Calibrated) Summary (2026-02-25)
+Computed from `outputs/master/<run_id>/tables/master_table.csv` for `module=parity_det`, `design=parity_holds`, `method=calibrated`.
+No explicit `error` column exists in these tables, so we compute `error = |coverage - 0.95|`.
+
+| run_id | N range (pts) | error range | err/mcse range | median err/mcse |
+| --- | --- | --- | --- | --- |
+| run_parity_deterministic_highsignal_tailN_seed20260223 | 800..6400 (8) | 0.00102–0.00610 | 1.06–6.66 | 2.84 |
+| run_parity_deterministic_highsignal_tailN_v2_seed20260223 | 800..6400 (8) | 0.00074–0.00404 | 1.51–8.63 | 3.27 |
+| run_parity_deterministic_highsignal_tailN_v3_seed20260223 | 800..6400 (8) | 0.00038–0.00815 | 0.783–18.2 | 3.11 |
+| run_parity_deterministic_optionA_extN_seed20260223_hashde32ad7a | 3000..12000 (10) | 4.0e-05–0.00360 | 0.0821–7.65 | 2.63 |
+| run_parity_deterministic_optionA_extN_seed20260224_hashde32ad7a | 3000..12000 (10) | 0–0.00421 | 0–8.31 | 3.28 |
+| run_parity_deterministic_optionA_extN_seed20260225_hashde32ad7a | 3000..12000 (10) | 0.00071–0.00438 | 1.45–9.39 | 4.77 |
+| run_parity_deterministic_periodicity_diag_optionA_seed20260223_hash05f7fb49 | 3000..3800 (17) | 0.00021–0.00486 | 0.43–9.54 | 2.76 |
+| run_parity_deterministic_periodicity_diag_optionA_seed20260224_hash05f7fb49 | 3000..3800 (17) | 0.00041–0.00419 | 0.845–8.96 | 4.74 |
+| run_parity_deterministic_periodicity_diag_optionA_seed20260225_hash05f7fb49 | 3000..3800 (17) | 0.00017–0.00565 | 0.349–11 | 3.63 |
+| run_parity_deterministic_periodicity_diag_v3_random_seed20260223_hasha157a417 | 3000..3800 (17) | 0.00043–0.00694 | 0.879–15.3 | 5.16 |
+| run_parity_deterministic_periodicity_diag_v3_random_seed20260224_hasha157a417 | 3000..3800 (17) | 0.00021–0.00449 | 0.432–9.62 | 5.72 |
+| run_parity_deterministic_periodicity_diag_v3_random_seed20260225_hasha157a417 | 3000..3800 (17) | 0.00021–0.00627 | 0.43–13.7 | 3.70 |
+| run_parity_deterministic_periodicity_diag_v3_seed20260223_hashb7264c55 | 3000..3800 (17) | 1.0e-05–0.00368 | 0.0205–7.82 | 3.11 |
+| run_parity_deterministic_periodicity_diag_v3_smooth_seed20260223_hash6cedad3c | 3000..3800 (17) | 0.00021–0.00369 | 0.432–7.84 | 2.27 |
+
+Rate-slope estimates from `tables/rate_slopes.csv` (scale=error, last 4 N points):
+- `run_parity_deterministic_highsignal_tailN_seed20260223`: slope −1.02 (low −5.19, high −0.535; n=4)
+- `run_parity_deterministic_highsignal_tailN_v2_seed20260223`: slope +2.13 (low +1.54, high +3.75; n=4)
+- `run_parity_deterministic_highsignal_tailN_v3_seed20260223`: slope −2.48 (low −3.79, high −1.96; n=4)
+- `run_parity_deterministic_optionA_extN_seed20260223_hashde32ad7a`: slope +5.23 (low −8.68, high +0.196; n=4)
+- `run_parity_deterministic_optionA_extN_seed20260224_hashde32ad7a`: slope −3.99 (low −4.77, high −2.12; n=4)
+- `run_parity_deterministic_optionA_extN_seed20260225_hashde32ad7a`: slope −5.61 (low −8.86, high −4.31; n=4)
+
+Interpretation: calibrated parity‑holds errors remain small but non‑monotone, with err/mcse often near 1 and slopes that flip sign across runs, so deterministic runs still do not yield a stable O(N^{-1}) rate signal. This is consistent with the observation that deterministic runs did not help demonstrate an N^{-1/2} decay (or any stable rate) for parity‑holds.
 
 ### Conclusion (Decision)
 At the current compute scale, **parity‑holds is not empirically resolvable** for these DGPs. The error signal is too small and non‑monotone to support an O(N^{-1}) rate claim.

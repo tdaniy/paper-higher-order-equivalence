@@ -1,0 +1,24 @@
+[meta]
+alpha = 0.05
+base_seed = 20260225
+
+[skew_symflip]
+# 36 log-spaced points between 800 and 100000 (inclusive)
+n_grid = [800, 918, 1054, 1210, 1389, 1595, 1830, 2101, 2412, 2769, 3178, 3649, 4188, 4808, 5519, 6335, 7272, 8348, 9583, 11001, 12628, 14496, 16640, 19101, 21927, 25170, 28893, 33167, 38073, 43705, 50170, 57591, 66110, 75889, 87114, 100000]
+f = 0.25
+
+# Monte Carlo
+B = 10
+R = 20000
+
+# DGP
+tau = 0.5
+mu = 0.0
+s = 1.0
+g_dist = "lognormal"   # "lognormal" or "gamma"
+g_log_sigma = 0.5
+g_gamma_shape = 4.0
+
+# Pairing / one-sided
+use_crn = true
+one_sided = "upper"

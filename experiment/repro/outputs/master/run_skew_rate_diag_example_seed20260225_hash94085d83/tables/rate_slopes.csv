@@ -1,0 +1,4 @@
+module,design,outcome,method,scale,slope,slope_low,slope_high,n_points
+skew_rate_diag,f=0.20,continuous,gaussian,error,0.1197350398329722,0.02485505283464011,0.0357714036963089,4
+skew_rate_diag,f=0.25,continuous,gaussian,error,-0.16592686150458513,-2.2550217916181836,-0.1512027248618519,4
+skew_rate_diag,f=0.50,continuous,gaussian,error,-1.8974329246070385,-2.7577425060627796,-1.5588225431067404,4

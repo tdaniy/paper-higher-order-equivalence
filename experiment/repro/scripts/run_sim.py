@@ -186,6 +186,85 @@ def _cluster_worker(args: Tuple[SeedSequence, int, List[np.ndarray], int, int, i
         cal.length_sum,
     )
 
+def _skew_rate_worker(
+    args: Tuple[
+        SeedSequence,
+        int,
+        int,
+        int,
+        int,
+        float,
+        float,
+        str,
+        float,
+        bool,
+        str,
+        float,
+        float,
+        float,
+    ]
+):
+    (
+        pop_ss,
+        n,
+        n1,
+        r_skew,
+        r_cov,
+        alpha,
+        delta,
+        base_dist,
+        t_df,
+        base_standardize,
+        skew_dist,
+        gamma_shape,
+        log_sigma,
+        skew_scale,
+    ) = args
+    ss_pop, ss_sk, ss_cv = pop_ss.spawn(3)
+    rng_pop = Generator(Philox(ss_pop))
+    rng_skew = Generator(Philox(ss_sk))
+    rng_cov = Generator(Philox(ss_cv))
+
+    if base_dist == "normal":
+        y0 = rng_pop.standard_normal(size=n)
+    elif base_dist == "t":
+        y0 = rng_pop.standard_t(t_df, size=n)
+    else:
+        raise ValueError(f"Unknown base_dist: {base_dist}")
+
+    if base_standardize:
+        y0 = standardize_array(y0)
+
+    skew_component = gen_skew_component(rng_pop, n, skew_dist, gamma_shape, log_sigma)
+    y1 = y0 + delta + skew_scale * skew_component
+    tau = float(delta)
+
+    assign_fn = lambda rng, n=n, n1=n1: draw_cra(rng, n, n1)
+    gamma_hat, kurt, _ql, _qh, ga, cf, cal, _q1, _p, _pj = simulate_population(
+        y0,
+        y1,
+        tau,
+        assign_fn,
+        r_skew,
+        r_cov,
+        alpha,
+        rng_skew,
+        rng_cov,
+    )
+    return (
+        ga.covered,
+        ga.count,
+        ga.length_sum,
+        cf.covered,
+        cf.count,
+        cf.length_sum,
+        cal.covered,
+        cal.count,
+        cal.length_sum,
+        gamma_hat,
+        kurt,
+    )
+
 
 def _lattice_worker(args: Tuple[SeedSequence, int, int, int, int, float, float, float]):
     pop_ss, n, n1, r_skew, r_cov, alpha, p0, p1 = args
@@ -565,6 +644,31 @@ def gen_binary(rng: Generator, n: int, p0: float, p1: float) -> Tuple[np.ndarray
     y0 = (rng.random(size=n) < p0).astype(float)
     y1 = (rng.random(size=n) < p1).astype(float)
     return y0, y1, float(p1 - p0)
+
+
+def gen_skew_component(
+    rng: Generator,
+    n: int,
+    dist: str,
+    gamma_shape: float,
+    log_sigma: float,
+) -> np.ndarray:
+    if dist == "gamma":
+        shape = max(gamma_shape, 1e-6)
+        scale = 1.0
+        x = rng.gamma(shape=shape, scale=scale, size=n)
+        mean = shape * scale
+        var = shape * (scale ** 2)
+    elif dist == "lognormal":
+        sigma = max(log_sigma, 1e-6)
+        x = rng.lognormal(mean=0.0, sigma=sigma, size=n)
+        mean = math.exp(0.5 * sigma ** 2)
+        var = (math.exp(sigma ** 2) - 1.0) * math.exp(sigma ** 2)
+    else:
+        raise ValueError(f"Unknown skew_dist: {dist}")
+    std = math.sqrt(var) if var > 0 else 1.0
+    z = (x - mean) / std
+    return z.astype(float, copy=False)
 
 
 def gen_deterministic_symmetric_spike(
@@ -1372,6 +1476,217 @@ def run_parity_deterministic(
                         "avg_length": stats.mean_length(),
                         "skew": gamma_hat,
                         "kurtosis": kurt,
+                        "periodicity": "",
+                        "lambda_N": "",
+                        "variance_ratio": "",
+                        "endpoint_diff": "",
+                    }
+                )
+
+    make_manifest(repro_root, experiment, run_id, config_path, seed, spawn_keys)
+    progress.finish()
+
+
+def run_skew_rate_diag(
+    cfg: Dict,
+    seed: int,
+    run_id: str,
+    repro_root: str,
+    master: List[Dict],
+    config_path: str,
+    alpha: float,
+) -> None:
+    n_grid = cfg["n_grid"]
+    f_grid = cfg["f_grid"]
+    B = cfg.get("B", 1)
+    r_skew = cfg["r_skew"]
+    r_cov = cfg["r_cov"]
+    delta = float(cfg.get("delta", 0.5))
+    base_dist = str(cfg.get("base_dist", "normal"))
+    t_df = float(cfg.get("t_df", 8.0))
+    base_standardize = bool(cfg.get("base_standardize", True))
+    skew_dist = str(cfg.get("skew_dist", "gamma"))
+    gamma_shape = float(cfg.get("gamma_shape", 4.0))
+    log_sigma = float(cfg.get("log_sigma", 0.4))
+    skew_scale = float(cfg.get("skew_scale", 1.0))
+
+    experiment = "skew_rate_diag"
+    spawn_keys = []
+    total_tasks = len(n_grid) * len(f_grid)
+    progress = ModuleProgress("skew_rate_diag", total_tasks)
+
+    for n in n_grid:
+        for f in f_grid:
+            n1 = max(5, int(round(f * n)))
+            n0 = n - n1
+            if n0 < 5:
+                n0 = 5
+                n1 = n - n0
+            f_eff = n1 / n
+
+            tag = scenario_tag(
+                "skew_rate_diag",
+                n=n,
+                f=f_eff,
+                B=B,
+                r_skew=r_skew,
+                r_cov=r_cov,
+                delta=delta,
+                base_dist=base_dist,
+                t_df=t_df,
+                base_standardize=base_standardize,
+                skew_dist=skew_dist,
+                gamma_shape=gamma_shape,
+                log_sigma=log_sigma,
+                skew_scale=skew_scale,
+            )
+            spawn_keys.append(
+                {
+                    "N": n,
+                    "f": f_eff,
+                    "base_dist": base_dist,
+                    "t_df": t_df,
+                    "base_standardize": base_standardize,
+                    "skew_dist": skew_dist,
+                    "gamma_shape": gamma_shape,
+                    "log_sigma": log_sigma,
+                    "skew_scale": skew_scale,
+                    "hash": stable_hash_int(tag),
+                }
+            )
+
+            ss = rng_sequence(seed, tag)
+            pop_seqs = ss.spawn(B)
+
+            gauss_all = CoverageStats()
+            cf_all = CoverageStats()
+            cal_all = CoverageStats()
+            gamma_sum = 0.0
+            kurt_sum = 0.0
+            pop_count = 0
+
+            progress.start_task(f"N={n} f={f_eff:.2f}", B)
+            workers = int(os.environ.get("REPRO_WORKERS", "1"))
+            if workers > 1 and B > 1:
+                from multiprocessing import get_context
+
+                ctx = get_context("spawn")
+                args = [
+                    (
+                        pop_ss,
+                        n,
+                        n1,
+                        r_skew,
+                        r_cov,
+                        alpha,
+                        delta,
+                        base_dist,
+                        t_df,
+                        base_standardize,
+                        skew_dist,
+                        gamma_shape,
+                        log_sigma,
+                        skew_scale,
+                    )
+                    for pop_ss in pop_seqs
+                ]
+                with ctx.Pool(processes=workers) as pool:
+                    for result in pool.imap(_skew_rate_worker, args, chunksize=1):
+                        (
+                            ga_cov,
+                            ga_cnt,
+                            ga_len,
+                            cf_cov,
+                            cf_cnt,
+                            cf_len,
+                            cal_cov,
+                            cal_cnt,
+                            cal_len,
+                            gamma_hat,
+                            kurt,
+                        ) = result
+                        gauss_all.covered += ga_cov
+                        gauss_all.count += ga_cnt
+                        gauss_all.length_sum += ga_len
+                        cf_all.covered += cf_cov
+                        cf_all.count += cf_cnt
+                        cf_all.length_sum += cf_len
+                        cal_all.covered += cal_cov
+                        cal_all.count += cal_cnt
+                        cal_all.length_sum += cal_len
+                        gamma_sum += gamma_hat
+                        kurt_sum += kurt
+                        pop_count += 1
+                        progress.update()
+            else:
+                for pop_ss in pop_seqs:
+                    (
+                        ga_cov,
+                        ga_cnt,
+                        ga_len,
+                        cf_cov,
+                        cf_cnt,
+                        cf_len,
+                        cal_cov,
+                        cal_cnt,
+                        cal_len,
+                        gamma_hat,
+                        kurt,
+                    ) = _skew_rate_worker(
+                        (
+                            pop_ss,
+                            n,
+                            n1,
+                            r_skew,
+                            r_cov,
+                            alpha,
+                            delta,
+                            base_dist,
+                            t_df,
+                            base_standardize,
+                            skew_dist,
+                            gamma_shape,
+                            log_sigma,
+                            skew_scale,
+                        )
+                    )
+                    gauss_all.covered += ga_cov
+                    gauss_all.count += ga_cnt
+                    gauss_all.length_sum += ga_len
+                    cf_all.covered += cf_cov
+                    cf_all.count += cf_cnt
+                    cf_all.length_sum += cf_len
+                    cal_all.covered += cal_cov
+                    cal_all.count += cal_cnt
+                    cal_all.length_sum += cal_len
+                    gamma_sum += gamma_hat
+                    kurt_sum += kurt
+                    pop_count += 1
+                    progress.update()
+
+            gamma_mean = gamma_sum / pop_count if pop_count else float("nan")
+            kurt_mean = kurt_sum / pop_count if pop_count else float("nan")
+            progress.finish_task()
+
+            design = f"f={f_eff:.2f}"
+            for method, stats in [("gaussian", gauss_all), ("cornish_fisher", cf_all), ("calibrated", cal_all)]:
+                master.append(
+                    {
+                        "module": experiment,
+                        "design": design,
+                        "outcome": "continuous",
+                        "method": method,
+                        "N": n,
+                        "m_N": n,
+                        "f": f_eff,
+                        "B": B,
+                        "R": r_cov,
+                        "S": "",
+                        "coverage": stats.rate(),
+                        "mcse": stats.mcse(),
+                        "avg_length": stats.mean_length(),
+                        "skew": gamma_mean,
+                        "kurtosis": kurt_mean,
                         "periodicity": "",
                         "lambda_N": "",
                         "variance_ratio": "",
