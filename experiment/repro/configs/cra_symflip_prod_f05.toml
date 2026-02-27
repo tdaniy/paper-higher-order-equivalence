@@ -1,0 +1,25 @@
+[meta]
+alpha = 0.05
+base_seed = 20260227
+
+[cra_symflip]
+# f=0.5 only, extended tail
+n_grid = [3000, 4500, 6800, 10000, 15000, 22000, 33000, 50000, 75000, 110000]
+f_grid = [0.50]
+near_census_c = []
+
+# Monte Carlo
+B = 400
+R = 12000
+
+# DGP (slightly stronger skew)
+tau = 0.5
+mu = 0.0
+s = 1.0
+g_dist = "lognormal"
+g_log_sigma = 0.6
+g_gamma_shape = 4.0
+
+# Pairing / one-sided
+use_crn = true
+one_sided = "upper"

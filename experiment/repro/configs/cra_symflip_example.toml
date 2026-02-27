@@ -1,0 +1,26 @@
+[meta]
+alpha = 0.05
+base_seed = 20260227
+
+[cra_symflip]
+# Small starter grid
+n_grid = [800, 1200, 1600, 2400]
+# Use a single f plus near-census sequences
+f_grid = [0.50]
+near_census_c = [1, 2]
+
+# Monte Carlo
+B = 200
+R = 5000
+
+# DGP (skewed baseline, constant effect)
+tau = 0.5
+mu = 0.0
+s = 1.0
+g_dist = "lognormal"
+g_log_sigma = 0.5
+g_gamma_shape = 4.0
+
+# Pairing / one-sided
+use_crn = true
+one_sided = "upper"

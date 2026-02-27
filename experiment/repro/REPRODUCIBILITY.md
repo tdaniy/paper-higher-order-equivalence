@@ -279,6 +279,62 @@ Summary:
 
 Interpretation: the symflip difference cleanly exposes the odd-order term, providing direct empirical support for the N^-1/2 component predicted by the theory. This completes the symflip experiment block.
 
+## CRA Symflip Diagnostics (2026-02-27)
+Goal: apply symflip (odd-term isolation) to CRA and assess whether |Δe(N)| follows N^-1/2 for f=0.5.
+
+### Starter sanity check (small N + near-census)
+Config:
+- `configs/cra_symflip_example.toml`
+- N grid: 800, 1200, 1600, 2400
+- f=0.5 plus near-census (c=1,2), B=200, R=5000
+
+Run:
+- `run_cra_symflip_example_seed20260227_hashab5fc012`
+
+Plots:
+- `plots/cra_symflip/run_cra_symflip_example_seed20260227_hashab5fc012/figs/cra_symflip_delta_error.png`
+- `plots/cra_symflip/run_cra_symflip_example_seed20260227_hashab5fc012/figs/cra_symflip_delta_sqrtN.png`
+
+Finding:
+- f=0.5 curve is small and noisy at this grid; near-census points sit much higher and are not slope-diagnostic (f varies with N).
+
+### Production grid with near-census (log-spaced N up to 50k)
+Config:
+- `configs/cra_symflip_prod.toml`
+- N grid: 2000..50000 (9 points), f=0.5 plus near-census c=1
+- B=200, R=8000, g_log_sigma=0.5
+
+Run:
+- `run_cra_symflip_prod_seed20260227_hashf52d7ff8`
+
+Plots:
+- `plots/cra_symflip/run_cra_symflip_prod_seed20260227_hashf52d7ff8/figs/cra_symflip_delta_error.png`
+- `plots/cra_symflip/run_cra_symflip_prod_seed20260227_hashf52d7ff8/figs/cra_symflip_delta_sqrtN.png`
+
+Finding:
+- f=0.5 series shows decline but remains non‑monotone; sqrt(N) scaling is not flat.
+- Near-census points are large but still not slope-diagnostic (f changes with N).
+
+### Production f=0.5 only (extended tail + higher MC)
+Config:
+- `configs/cra_symflip_prod_f05.toml`
+- N grid: 3000..110000 (10 points), f=0.5 only
+- B=400, R=12000, g_log_sigma=0.6
+
+Run:
+- `run_cra_symflip_prod_f05_seed20260227_hash34bdd38e`
+
+Plots:
+- `plots/cra_symflip/run_cra_symflip_prod_f05_seed20260227_hash34bdd38e/figs/cra_symflip_delta_error.png`
+- `plots/cra_symflip/run_cra_symflip_prod_f05_seed20260227_hash34bdd38e/figs/cra_symflip_delta_sqrtN.png`
+
+Finding:
+- |Δe| remains non‑monotone and does not track a clean N^-1/2 slope.
+- sqrt(N)*|Δe| is not flat (noticeable bump near mid/upper tail), so asymptotics are not yet cleanly resolved.
+
+Conclusion:
+CRA symflip currently does **not** deliver a stable N^-1/2 diagnostic at f=0.5, even with extended N and higher MC. This contrasts with the successful non‑CRA symflip experiment.
+
 ## Parity-Holds Spike Tail Extension (Completed 2026-02-26)
 Goal: extend the parity-holds spike DGP tail to confirm O(N^-1) decay with larger N.
 
@@ -429,3 +485,7 @@ Runtime note: the faithful missing-mass posterior is substantially more expensiv
   - Estimate `Δerr = err(2N) − err(N)` directly to amplify the O(N^{-1}) term.
   - Reuse existing RNG tagging and add a small wrapper that draws paired assignments so both N and 2N share randomness where possible.
   - Report slopes from `Δerr` vs N (paired differences) rather than raw errors.
+ - CRA symflip next steps (if we continue):
+   - Drop near‑census permanently and focus on f=0.5 only.
+   - Add 2–3 larger N points above 110k and/or run multiple seeds to average out non‑monotone tails.
+   - Consider MLMC‑style paired N/2N differences for CRA to reduce variance instead of further increasing B/R.

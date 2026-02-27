@@ -1,0 +1,17 @@
+[meta]
+base_seed = 20260222
+alpha = 0.05
+
+[cra_sampling]
+# Tail-only extension (fast variant)
+n_grid = [3600, 4000, 4400, 4800]
+# Only the f-values needed for C2/C3 summaries
+f_grid = [0.50]
+near_census_c = [1, 2]
+# Reduced MC effort
+B = 800
+r_skew = 6400
+r_cov = 12800
+mu = 0.0
+sigma = 1.2
+delta = 0.5

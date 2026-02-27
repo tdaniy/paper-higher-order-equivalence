@@ -1,0 +1,10 @@
+module,design,outcome,method,scale,slope,slope_low,slope_high,n_points
+cra_symflip,f=0.5,continuous,symflip_delta,delta_abs,-1.041927887525855,nan,nan,4
+cra_symflip,f=0.9287,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.9425,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.95,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.9592,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.965,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.9708,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.975,continuous,symflip_delta,delta_abs,nan,nan,nan,1
+cra_symflip,f=0.9796,continuous,symflip_delta,delta_abs,nan,nan,nan,1

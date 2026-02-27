@@ -509,6 +509,131 @@ def plot_symflip(
     fig.tight_layout()
     fig.savefig(plot_path, dpi=200)
 
+
+def plot_cra_symflip(
+    rows: List[Dict],
+    run_id: str,
+    repro_root: str,
+    slope_rows: List[Dict],
+) -> None:
+    data = [r for r in rows if r["module"] == "cra_symflip" and r["method"] == "symflip_delta"]
+    if not data:
+        return
+
+    series = {}
+    for r in data:
+        fval = _round_key(r.get("f", math.nan), digits=4)
+        series.setdefault(fval, []).append(r)
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for fval, pts in sorted(series.items()):
+        pts = sorted(pts, key=lambda x: x["m_N"])
+        xs = [p["m_N"] for p in pts]
+        delta = [abs(p.get("coverage", math.nan)) for p in pts]
+        mcse = [p.get("mcse", math.nan) for p in pts]
+        err_low = [max(0.0, d - m) if m == m else d for d, m in zip(delta, mcse)]
+        err_high = [d + m if m == m else d for d, m in zip(delta, mcse)]
+        label = f"f={fval}"
+        ax.plot(xs, delta, marker="o", label=label)
+        ax.fill_between(xs, err_low, err_high, alpha=0.2)
+
+        sel_x, sel_y, sel_low, sel_high = _select_tail(xs, delta, err_low, err_high)
+        slope, slope_low, slope_high = _slope_with_band(sel_x, sel_y, sel_low, sel_high)
+        slope_rows.append(
+            {
+                "module": "cra_symflip",
+                "design": f"f={fval}",
+                "outcome": "continuous",
+                "method": "symflip_delta",
+                "scale": "delta_abs",
+                "slope": slope,
+                "slope_low": slope_low,
+                "slope_high": slope_high,
+                "n_points": len(sel_x),
+            }
+        )
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("N")
+    ax.set_ylabel("|Δe(N)|")
+    ax.set_title("CRA symflip Δe (log–log)")
+    ax.legend()
+    ax.grid(True, which="both", alpha=0.3)
+
+    first_series = next(iter(series.values()))
+    first_series = sorted(first_series, key=lambda x: x["m_N"])
+    xs0 = [p["m_N"] for p in first_series]
+    ys0 = [abs(p.get("coverage", math.nan)) for p in first_series]
+    if xs0 and ys0:
+        _plot_theory_line(ax, xs0, ys0[0], -0.5, "N^{-1/2}")
+        _plot_theory_line(ax, xs0, ys0[0], -1.0, "N^{-1}")
+
+    plot_path = os.path.join(repro_root, "plots", "cra_symflip", run_id, "figs", "cra_symflip_delta_error.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    for fval, pts in sorted(series.items()):
+        pts = sorted(pts, key=lambda x: x["m_N"])
+        xs = [p["m_N"] for p in pts]
+        delta = [abs(p.get("coverage", math.nan)) for p in pts]
+        ys = [d * math.sqrt(x) for d, x in zip(delta, xs)]
+        label = f"f={fval}"
+        ax.plot(xs, ys, marker="o", label=label)
+
+    ax.set_xlabel("N")
+    ax.set_ylabel("sqrt(N) * |Δe(N)|")
+    ax.set_title("CRA symflip Δe (sqrt scaling)")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plot_path = os.path.join(repro_root, "plots", "cra_symflip", run_id, "figs", "cra_symflip_delta_sqrtN.png")
+    ensure_dir(os.path.dirname(plot_path))
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=200)
+
+    # Split panels to separate f=0.5 from near-census curves
+    base_series = {k: v for k, v in series.items() if k <= 0.5001}
+    near_series = {k: v for k, v in series.items() if k > 0.5001}
+    if base_series and near_series:
+        fig, axes = plt.subplots(1, 2, figsize=(10, 4), sharey=False)
+        ax_left, ax_right = axes
+
+        for fval, pts in sorted(base_series.items()):
+            pts = sorted(pts, key=lambda x: x["m_N"])
+            xs = [p["m_N"] for p in pts]
+            delta = [abs(p.get("coverage", math.nan)) for p in pts]
+            ys = [d * math.sqrt(x) for d, x in zip(delta, xs)]
+            ax_left.plot(xs, ys, marker="o", label=f"f={fval}")
+        ax_left.set_xlabel("N")
+        ax_left.set_ylabel("sqrt(N) * |Δe(N)|")
+        ax_left.set_title("CRA symflip sqrt(N) (f=0.5)")
+        ax_left.grid(True, alpha=0.3)
+
+        for fval, pts in sorted(near_series.items()):
+            pts = sorted(pts, key=lambda x: x["m_N"])
+            xs = [p["m_N"] for p in pts]
+            delta = [abs(p.get("coverage", math.nan)) for p in pts]
+            ys = [d * math.sqrt(x) for d, x in zip(delta, xs)]
+            ax_right.plot(xs, ys, marker="o", label=f"f={fval}")
+        ax_right.set_xlabel("N")
+        ax_right.set_title("CRA symflip sqrt(N) (near-census)")
+        ax_right.legend()
+        ax_right.grid(True, alpha=0.3)
+
+        plot_path = os.path.join(
+            repro_root,
+            "plots",
+            "cra_symflip",
+            run_id,
+            "figs",
+            "cra_symflip_delta_sqrtN_split.png",
+        )
+        ensure_dir(os.path.dirname(plot_path))
+        fig.tight_layout()
+        fig.savefig(plot_path, dpi=200)
+
 def plot_skew_rate_diag(
     rows: List[Dict],
     run_id: str,
@@ -786,6 +911,8 @@ def main() -> None:
         plot_skew_rate_diag(rows, run_id, repro_root, alpha, slope_rows)
     if any(r.get("module") == "skew_symflip" for r in rows):
         plot_symflip(rows, run_id, repro_root, slope_rows)
+    if any(r.get("module") == "cra_symflip" for r in rows):
+        plot_cra_symflip(rows, run_id, repro_root, slope_rows)
     plot_stratified(rows, run_id, repro_root, alpha)
     plot_cluster(rows, run_id, repro_root, alpha)
     plot_one_sided(rows, run_id, repro_root, alpha, compare_rows=compare_rows)
